@@ -20,12 +20,12 @@ metadata:
     - url: https://github.com/tdr-dealertrack/qa-testing-garage
       title: GitHub Repository
       icon: github
+  vertical: qa
+  availability: low
+  confidentiality: internal
+  integrity: low
 spec:
   type: service
   lifecycle: experimental
   owner: qa-team
   system: testing-tools
-  vertical: qa
-  availability: low
-  confidentiality: internal
-  integrity: low
