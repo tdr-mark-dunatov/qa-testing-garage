@@ -1,8 +1,18 @@
 # 🏎️ Test Data Compliance Guardian
 
-**Compliance-aware testing platform with automatic PII detection**
+**Hackathon 2024 Project**
 
-Self-hosted testing tools that protect sensitive data with automatic PII scanning, ownership tracking, and real-time compliance alerts. Built for teams that can't afford data leaks in their testing workflows.
+## The Problem We Discovered
+
+Our QA tests were using webhook.site, leaving **sensitive customer data** (SSN, credit scores, loan amounts) exposed on external servers for **30+ days** with no cleanup.
+
+**This is a real compliance risk.**
+
+## The Solution
+
+Self-hosted webhook testing platform with **automatic PII detection**, Slack alerts when sensitive data is found, and full data ownership.
+
+Replace webhook.site. Stop data leaks. Stay compliant.
 
 ---
 
@@ -58,31 +68,20 @@ http://localhost:8080
 
 ---
 
-## 🏗️ Monorepo Structure
+## 🏗️ Architecture
 
 ```
-qa-testing-garage/
-├── apps/
-│   ├── webhook-inspector/    # Webhook testing tool
-│   │   ├── api/              # FastAPI backend
-│   │   └── web/              # React frontend
-│   │
-│   ├── portal/               # Landing page (coming soon)
-│   ├── api-mocker/           # Future tool
-│   └── test-data-factory/    # Future tool
-│
-├── packages/
-│   ├── shared-ui/            # Shared React components
-│   └── types/                # Shared TypeScript types
-│
-├── docker/
-│   └── docker-compose.yml    # All services
-│
-└── docs/
-    ├── TOOLS.md              # Tool catalog
-    ├── SECURITY.md           # Security guidelines
-    └── CONTRIBUTING.md       # How to add tools
+PostgreSQL 15 → FastAPI Backend → React Frontend
+    ↓              ↓                   ↓
+Webhook data   PII Detection      Real-time UI
+Audit trail    Slack Alerts       WebSockets
 ```
+
+**Tech Stack:**
+- Backend: Python 3.11 + FastAPI + SQLAlchemy
+- Frontend: React 18 + Vite + Tailwind
+- Database: PostgreSQL 15
+- Infrastructure: Docker Compose
 
 ---
 
@@ -123,14 +122,18 @@ npm run dev
 
 ---
 
-## 🎯 Why a Monorepo?
+## 💰 Business Value
 
-**Benefits:**
-- ✅ **Shared Components** - Reuse UI, auth, utilities across tools
-- ✅ **Consistent Branding** - Same look and feel
-- ✅ **Easier Development** - One repo, one workflow
-- ✅ **Cross-Tool Features** - Tools can integrate with each other
-- ✅ **Single Deployment** - Docker Compose orchestrates all services
+| webhook.site Pro | Compliance Guardian |
+|------------------|---------------------|
+| $9/user/month | Self-hosted (~$15/month AWS) |
+| **$1,080/year for 10 users** | **$180/year** |
+| No PII detection | ✅ Automatic PII scanning |
+| No alerts | ✅ Slack notifications |
+| No ownership tracking | ✅ Full audit trail |
+| Data sits 30 days | ✅ Delete on demand |
+
+**Savings: $900/year + Compliance guaranteed**
 
 ---
 
