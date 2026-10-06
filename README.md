@@ -6,6 +6,25 @@ Self-hosted testing tools that protect sensitive data with automatic PII scannin
 
 ---
 
+## 🚀 Quick Start for Developers
+
+**Get running in 5 minutes:**
+
+```bash
+# 1. Start everything (PostgreSQL + Backend + Frontend)
+cd docker
+docker-compose up --build
+
+# 2. Open your browser
+http://localhost:8080
+```
+
+**That's it!** 
+
+👉 **See [DEV_SETUP.md](./DEV_SETUP.md) for complete setup guide**
+
+---
+
 ## 🛠️ Tools in the Garage
 
 ### 🏁 [Webhook Inspector](./apps/webhook-inspector/) - **LIVE**
