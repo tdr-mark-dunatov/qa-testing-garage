@@ -12,8 +12,9 @@ COPY pyproject.toml poetry.lock* ./
 # Configure Poetry to not create virtual env (we're in Docker)
 RUN poetry config virtualenvs.create false
 
-# Install dependencies
-RUN poetry install --no-interaction --no-ansi --no-root --only main
+# Generate lock file if missing, then install dependencies
+RUN if [ ! -f poetry.lock ]; then poetry lock --no-update; fi && \
+    poetry install --no-interaction --no-ansi --no-root --only main
 
 # Copy application code
 COPY . .
