@@ -15,6 +15,11 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
+/* Racing Red Theme */
+body {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%);
+}
+
 /* Racing theme animations */
 @keyframes pit-entry {
   from {
@@ -29,4 +34,29 @@ code {
 
 .pit-entry {
   animation: pit-entry 0.3s ease-out;
+}
+
+@keyframes speed-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.speed-in {
+  animation: speed-in 0.4s ease-out;
+}
+
+/* Racing stripes effect */
+@keyframes racing-stripe {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
 }
