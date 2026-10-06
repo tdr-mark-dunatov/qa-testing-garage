@@ -1,0 +1,114 @@
+{
+  "folders": [
+    {
+      "name": "🏁 Webhook Pitstop (Root)",
+      "path": "."
+    },
+    {
+      "name": "📡 API (FastAPI)",
+      "path": "apps/api"
+    },
+    {
+      "name": "🌐 Web (React)",
+      "path": "apps/web"
+    },
+    {
+      "name": "📦 Shared",
+      "path": "packages/shared"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/*.pyc": true,
+      "**/node_modules": true,
+      "**/.git": true,
+      "**/venv": true,
+      "**/.venv": true,
+      "**/dist": true,
+      "**/.DS_Store": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/venv": true,
+      "**/.venv": true,
+      "**/dist": true
+    },
+    "python.defaultInterpreterPath": "${workspaceFolder:API}/venv/bin/python",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.formatting.provider": "black",
+    "[python]": {
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+      }
+    },
+    "[javascript]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascriptreact]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "bradlc.vscode-tailwindcss",
+      "ms-azuretools.vscode-docker"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "🏁 FastAPI Backend",
+        "type": "python",
+        "request": "launch",
+        "module": "uvicorn",
+        "args": ["main:app", "--reload"],
+        "cwd": "${workspaceFolder:API}",
+        "env": {
+          "DATABASE_URL": "sqlite:///./pitstop.db"
+        }
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "🏁 Start API",
+        "type": "shell",
+        "command": "uvicorn main:app --reload",
+        "options": {
+          "cwd": "${workspaceFolder}/apps/api"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "🌐 Start Web",
+        "type": "shell",
+        "command": "npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder}/apps/web"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "🚀 Start Both (Dev)",
+        "dependsOn": ["🏁 Start API", "🌐 Start Web"],
+        "problemMatcher": []
+      }
+    ]
+  }
+}

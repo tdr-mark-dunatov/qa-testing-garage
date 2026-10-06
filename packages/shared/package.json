@@ -1,0 +1,13 @@
+{
+  "name": "@webhook-pitstop/shared",
+  "version": "1.0.0",
+  "description": "Shared types and utilities for Webhook Pitstop monorepo",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"No tests yet\""
+  },
+  "keywords": ["webhook", "shared", "types"],
+  "author": "Mark Dunatov",
+  "license": "MIT"
+}

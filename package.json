@@ -1,0 +1,31 @@
+{
+  "name": "webhook-pitstop-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "🏁 Webhook Pitstop - Monorepo for webhook inspection tools",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "cd apps/api && poetry run uvicorn main:app --reload",
+    "dev:web": "cd apps/web && npm run dev",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "build": "npm run build:web",
+    "build:web": "cd apps/web && npm run build",
+    "docker:up": "cd docker && docker-compose up --build",
+    "docker:down": "cd docker && docker-compose down",
+    "install:all": "npm install && cd apps/api && poetry install && cd ../web && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "webhook",
+    "testing",
+    "qa",
+    "monorepo"
+  ],
+  "author": "Mark Dunatov",
+  "license": "MIT"
+}

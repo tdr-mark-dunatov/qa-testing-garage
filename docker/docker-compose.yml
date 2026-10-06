@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (optional - comment out to use SQLite)
+  # db:
+  #   image: postgres:15-alpine
+  #   container_name: pitstop-db
+  #   environment:
+  #     - POSTGRES_USER=pitstop
+  #     - POSTGRES_PASSWORD=pitstop123
+  #     - POSTGRES_DB=webhooks
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - pitstop-network
+  #   restart: unless-stopped
+
+  backend:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile
+    container_name: pitstop-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../apps/api:/app
+      - pitstop-data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:///./data/pitstop.db
+      # For PostgreSQL, uncomment and use:
+      # - DATABASE_URL=postgresql://pitstop:pitstop123@db:5432/webhooks
+    # depends_on:
+    #   - db
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+    container_name: pitstop-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+
+volumes:
+  pitstop-data:
+    driver: local
+  # postgres-data:
+  #   driver: local
+
+networks:
+  pitstop-network:
+    driver: bridge
