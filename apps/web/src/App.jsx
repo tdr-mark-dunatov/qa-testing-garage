@@ -15,6 +15,8 @@ function App() {
   const [bayName, setBayName] = useState('');
   const [bayDescription, setBayDescription] = useState('');
   const [showNamedForm, setShowNamedForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterMethod, setFilterMethod] = useState('ALL');
   const ws = useRef(null);
 
   const createQuickBay = async () => {
@@ -122,6 +124,48 @@ function App() {
       'PATCH': 'text-purple-600 bg-purple-50',
     };
     return colors[method] || 'text-gray-600 bg-gray-50';
+  };
+
+  const filteredRequests = requests.filter(req => {
+    // Filter by search term (searches in body, headers, query params)
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesBody = req.body?.toLowerCase().includes(searchLower);
+      const matchesHeaders = JSON.stringify(req.headers).toLowerCase().includes(searchLower);
+      const matchesQuery = JSON.stringify(req.query_params).toLowerCase().includes(searchLower);
+      const matchesIp = req.ip_address?.toLowerCase().includes(searchLower);
+      if (!matchesBody && !matchesHeaders && !matchesQuery && !matchesIp) return false;
+    }
+    // Filter by HTTP method
+    if (filterMethod !== 'ALL' && req.method !== filterMethod) return false;
+    return true;
+  });
+
+  const copyAsCurl = (req) => {
+    let curl = `curl -X ${req.method} "${pitLaneUrl}"`;
+    if (req.headers && Object.keys(req.headers).length > 0) {
+      Object.entries(req.headers).forEach(([key, value]) => {
+        if (!key.toLowerCase().startsWith('host')) {
+          curl += ` \\\n  -H "${key}: ${value}"`;
+        }
+      });
+    }
+    if (req.body) {
+      curl += ` \\\n  -d '${req.body}'`;
+    }
+    navigator.clipboard.writeText(curl);
+    alert('📋 cURL command copied! Paste in terminal to replay webhook.');
+  };
+
+  const exportWebhooks = () => {
+    const data = JSON.stringify(filteredRequests, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `webhooks-${pitId}-${new Date().toISOString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -300,14 +344,53 @@ function App() {
           <div className="grid grid-cols-2 gap-8">
             {/* Request List */}
             <div className="bg-white rounded-lg shadow-2xl p-6 border-4 border-racing-red">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-racing-red">
-                <span>📋</span> Receiving Bay Activity ({requests.length})
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold flex items-center gap-2 text-racing-red">
+                  <span>📋</span> Activity ({filteredRequests.length}/{requests.length})
+                </h2>
+                <button
+                  onClick={exportWebhooks}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700 text-sm"
+                  disabled={filteredRequests.length === 0}
+                >
+                  📤 Export JSON
+                </button>
+              </div>
+
+              {/* Search & Filter */}
+              <div className="mb-4 space-y-2">
+                <input
+                  type="text"
+                  placeholder="🔍 Search webhooks (dealId, body, headers...)"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full p-3 border-2 border-gray-300 rounded-lg font-medium focus:border-racing-red focus:outline-none"
+                />
+                <div className="flex gap-2">
+                  {['ALL', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH'].map(method => (
+                    <button
+                      key={method}
+                      onClick={() => setFilterMethod(method)}
+                      className={`px-3 py-1 rounded-lg font-bold text-sm transition-all ${
+                        filterMethod === method
+                          ? 'bg-racing-red text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {method}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                {requests.length === 0 && (
+                {filteredRequests.length === 0 && requests.length === 0 && (
                   <p className="text-gray-500 text-center py-8 font-medium">⏱️ Waiting for incoming requests...</p>
                 )}
-                {requests.map((req) => (
+                {filteredRequests.length === 0 && requests.length > 0 && (
+                  <p className="text-gray-500 text-center py-8 font-medium">🔍 No webhooks match your search</p>
+                )}
+                {filteredRequests.map((req) => (
                   <div
                     key={req.id}
                     onClick={() => setSelectedRequest(req)}
@@ -323,9 +406,18 @@ function App() {
                         {new Date(req.created_at).toLocaleTimeString()}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-700 mt-2 flex justify-between font-semibold">
-                      <span>⚡ {req.lap_time_ms}ms</span>
-                      <span>📍 {req.ip_address}</span>
+                    <div className="mt-2 flex justify-between items-center">
+                      <div className="text-sm text-gray-700 font-semibold">
+                        <span>⚡ {req.lap_time_ms}ms</span>
+                        <span className="ml-4">📍 {req.ip_address}</span>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); copyAsCurl(req); }}
+                        className="text-xs bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 font-bold"
+                        title="Copy as cURL command"
+                      >
+                        📋 cURL
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -334,9 +426,19 @@ function App() {
 
             {/* Request Details - Diagnostic Report */}
             <div className="bg-white rounded-lg shadow-2xl p-6 border-4 border-racing-red">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-racing-red">
-                <span>🔧</span> Diagnostic Report
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold flex items-center gap-2 text-racing-red">
+                  <span>🔧</span> Diagnostic Report
+                </h2>
+                {selectedRequest && (
+                  <button
+                    onClick={() => copyAsCurl(selectedRequest)}
+                    className="bg-gray-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-gray-700 text-sm"
+                  >
+                    📋 Copy as cURL
+                  </button>
+                )}
+              </div>
               {selectedRequest ? (
                 <div className="space-y-4">
                   <div className="bg-gradient-to-br from-racing-red/10 to-racing-red/5 p-4 rounded-lg border-2 border-racing-red/20">
