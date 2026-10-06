@@ -1,8 +1,8 @@
-# 🏎️ QA Testing Garage
+# 🏎️ Test Data Compliance Guardian
 
-**A monorepo of QA testing tools for automotive teams**
+**Compliance-aware testing platform with automatic PII detection**
 
-Collection of internal tools built to solve real QA testing problems - webhook inspection, API mocking, test data generation, and more.
+Self-hosted testing tools that protect sensitive data with automatic PII scanning, ownership tracking, and real-time compliance alerts. Built for teams that can't afford data leaks in their testing workflows.
 
 ---
 
@@ -10,17 +10,24 @@ Collection of internal tools built to solve real QA testing problems - webhook i
 
 ### 🏁 [Webhook Inspector](./apps/webhook-inspector/) - **LIVE**
 
-Real-time webhook testing with automatic PII masking.
+Real-time webhook testing with **automatic PII detection and compliance alerts**.
 
-**Features:**
+**Core Compliance Features:**
+- 🚨 **Automatic PII Detection** - Scans for SSN, SIN, credit scores, emails, phone numbers
+- 📢 **Slack Alerts** - Real-time notifications when sensitive data detected
+- 👥 **Ownership Tracking** - Know who/what/when for every endpoint
+- 📊 **Compliance Dashboard** - See all data exposure at a glance
+- ⏰ **Auto-Expiration** - Configurable data retention policies
+
+**Testing Features:**
 - Named & quick receiving bays
 - Real-time WebSocket updates
 - Search & filter webhooks
 - Export as JSON / Copy as cURL
-- Automatic PII masking (SSN, credit cards, email, phone)
+- PII masking for display
 - Racing-themed dashboard
 
-**Built for:** Testing partner webhooks (BMT, HYN, RBC) without exposing sensitive data
+**Built for:** Testing partner webhooks (BMT, HYN, RBC) while **maintaining compliance**
 
 **[→ View Webhook Inspector Docs](./apps/webhook-inspector/README.md)**
 
@@ -137,31 +144,50 @@ npm run dev
 
 ---
 
-## 🔒 Security
+## 🔒 Security & Compliance
 
 All tools follow these principles:
-- **PII Masking** - Sensitive data masked before storage
+
+### Automatic Protection
+- **PII Detection** - Automatic scanning for SSN, SIN, credit scores, emails, phone
+- **Real-time Alerts** - Slack notifications when sensitive data detected
+- **PII Masking** - Display-level masking for sensitive data
+- **Auto-Expiration** - Configurable data retention policies
+
+### Accountability
+- **Ownership Tracking** - Know who created every endpoint
+- **Audit Trail** - Full compliance logs
+- **Team Attribution** - Track by team/repo/pipeline
+
+### Infrastructure
 - **Self-Hosted** - No third-party data exposure
-- **Audit Ready** - Logs and access controls
 - **Network Isolation** - Deploy on internal networks
+- **Access Controls** - Role-based permissions
 
 See [SECURITY_ROADMAP.md](./SECURITY_ROADMAP.md) for production security requirements.
 
 ---
 
-## 🏆 Built For
+## 🏆 The Discovery
 
-**AutoScout24 QA Team** - Solving real testing problems:
+**We found a compliance risk in our own tests.**
 
 ### The Problem:
-Our QA tests for partner integrations were using webhook.site, leaving sensitive customer data (SSN, credit scores, loan amounts) exposed on external servers for 30+ days with no cleanup.
+Our QA tests for partner integrations were using webhook.site, leaving sensitive customer data (SSN, credit scores, loan amounts) exposed on external servers for 30+ days. 
+
+**This wasn't just a webhook problem** - it affects ANY team using temporary endpoints (RequestBin, mock APIs, etc.)
 
 ### The Solution:
-Self-hosted testing tools with:
-- Full data control
-- Automatic PII protection
-- Immediate cleanup
-- Custom QA workflows
+**Test Data Compliance Guardian** - A platform that:
+- ✅ **Detects PII automatically** (SSN, SIN, credit scores, emails, phone)
+- ✅ **Sends Slack alerts** when sensitive data found
+- ✅ **Tracks ownership** (team/repo/pipeline/user)
+- ✅ **Compliance dashboard** for visibility
+- ✅ **Full data control** (self-hosted)
+- ✅ **Immediate cleanup** when tests complete
+- ✅ **Audit trail** for compliance
+
+**Not just for QA. A platform tool for every team.**
 
 ---
 
@@ -189,10 +215,13 @@ Self-hosted testing tools with:
 
 | Tool | Status | Version | Last Updated |
 |------|--------|---------|--------------|
-| Webhook Inspector | ✅ Live | 1.0.0 | 2024-10-06 |
+| Webhook Inspector (with PII detection) | ✅ Live | 1.0.0 | 2024-10-06 |
+| Slack Alerts | 🚧 In Progress | 0.1.0 | 2024-10-06 |
+| Compliance Dashboard | 🚧 In Progress | 0.1.0 | 2024-10-06 |
+| Ownership Tracking | 🚧 Planned | - | - |
 | Portal | 🚧 Planned | - | - |
-| API Mocker | 🚧 Planned | - | - |
-| Test Data Factory | 🚧 Planned | - | - |
+| API Mocker (with compliance) | 🚧 Planned | - | - |
+| Test Data Factory (PII-safe) | 🚧 Planned | - | - |
 
 ---
 
@@ -218,25 +247,47 @@ MIT License - See [LICENSE](./LICENSE)
 
 ## 🎬 Hackathon Origin
 
-Built during **Hackathon 2024** in response to the "Test Data Compliance Guardian" idea:
+Built during **Hackathon 2024** to solve a real compliance risk:
 
-> "Teams use webhook.site, request bins, mock APIs... Sensitive payloads can remain exposed after tests complete."
+### The Original Idea:
+> "Build a service that registers temporary webhook endpoints, tracks ownership, scans payloads for PII, and sends alerts when sensitive data is detected."
 
-We discovered this was a REAL problem in our Playwright tests. So we built the solution!
+### What We Discovered:
+While testing, we found our own Playwright tests were leaving sensitive customer data (SSN, credit scores, loan amounts) on webhook.site for 30+ days with no cleanup.
+
+### What We Built:
+A production-ready compliance platform that:
+- Automatically detects PII in real-time
+- Sends Slack alerts immediately
+- Tracks ownership for full accountability
+- Provides compliance dashboard
+- Replaces external services like webhook.site
+
+**Not just a hackathon project. A real solution to a real problem.**
 
 ---
 
 ## 🏁 The Vision
 
-**QA Testing Garage = One-stop shop for all QA testing tools**
+**Test Data Compliance Guardian = Compliance layer for ALL testing tools**
 
-Instead of cobbling together external services (webhook.site, mocky.io, faker.js, etc.), we build our own:
-- ✅ **Secure** - Self-hosted, PII-protected
-- ✅ **Integrated** - Tools work together
-- ✅ **Custom** - Built for our workflows
-- ✅ **Compliant** - Audit trails, access control
+Instead of cobbling together external services without compliance:
+- ❌ webhook.site (no PII detection)
+- ❌ RequestBin (no ownership tracking)
+- ❌ mocky.io (no alerts)
+- ❌ faker.js (generates real-looking PII)
 
-**Future:** Add API mockers, test data generators, contract validators, performance monitors, and more!
+We build a **compliance-first platform**:
+- ✅ **Automatic PII Detection** - Scans everything
+- ✅ **Real-time Alerts** - Slack notifications
+- ✅ **Ownership Tracking** - Full accountability
+- ✅ **Compliance Dashboard** - Visibility for all
+- ✅ **Self-Hosted** - Complete control
+- ✅ **Audit Ready** - Full compliance logs
+
+**Future:** Expand to API mockers, test data generators, contract validators - all with built-in compliance.
+
+🏁 **Test at race speed, compliance guaranteed!**
 
 ---
 

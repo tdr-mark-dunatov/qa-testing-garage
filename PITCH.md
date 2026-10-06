@@ -1,8 +1,10 @@
-# 🎯 Webhook Pitstop - QA Team Pitch
+# 🎯 Test Data Compliance Guardian - QA Team Pitch
 
 ---
 
-## **Subject: Security Issue Found in Webhook Tests + Proposed Solution**
+## **Subject: Critical Security Issue Found in Webhook Tests + Proposed Solution**
+
+**TL;DR:** Our tests are leaking sensitive customer data (SSN, credit scores, loan amounts) to external services like webhook.site. We need a compliance-aware testing platform.
 
 ---
 
@@ -88,18 +90,19 @@ public async Task DeleteSubscriptionAsync(string partner)
 
 ---
 
-## 🚀 Long-Term Solution: Webhook Pitstop
+## 🚀 Long-Term Solution: Test Data Compliance Guardian
 
-**Self-hosted webhook testing platform built for our QA workflows.**
+**Self-hosted compliance-aware testing platform with automatic PII detection and tracking.**
 
-### Why Self-Host?
+### Why Self-Host + Compliance Features?
 
-| webhook.site | Webhook Pitstop (Self-Hosted) |
+| webhook.site | Test Data Compliance Guardian |
 |--------------|-------------------------------|
 | ❌ Data sits externally 30+ days | ✅ Delete immediately after test |
-| ❌ No access control | ✅ Only team can access |
-| ❌ No audit trail | ✅ Track who accessed what |
+| ❌ No access control | ✅ Track ownership (team/repo/pipeline/user) |
+| ❌ No audit trail | ✅ Full audit trail + compliance dashboard |
 | ❌ Generic tool | ✅ Built for our workflow |
+| ❌ No PII detection | ✅ **Automatic PII scanning & alerts** |
 | ❌ Rate limits | ✅ Unlimited |
 | ❌ $9/user/month at scale | ✅ Self-hosted, one cost |
 
@@ -174,6 +177,97 @@ Assert.That(webhook.Status, Is.EqualTo("APPROVED"));
 
 ---
 
+## 🛡️ Compliance Features (NEW!)
+
+### 7. **Automatic PII Detection**
+```
+Scans every incoming webhook for:
+✓ SSN (US Social Security Numbers)
+✓ SIN (Canadian Social Insurance Numbers)
+✓ Credit scores (300-850 range)
+✓ Loan amounts ($10,000+)
+✓ Email addresses
+✓ Phone numbers
+✓ VIN numbers
+```
+
+**Action when detected:**
+- 🚨 Immediate Slack alert to team channel
+- 🏷️ Tags webhook as "Contains PII"
+- 📊 Adds to compliance dashboard
+- ⏰ Auto-expires in 24 hours (configurable)
+
+---
+
+### 8. **Ownership Tracking**
+Every webhook endpoint is tracked:
+```json
+{
+  "bay_name": "hmf-integration",
+  "owner": {
+    "user": "mark.dunatov",
+    "team": "QA",
+    "repo": "DTN.PlaywrightTests",
+    "pipeline": "GitHub Actions #1234",
+    "created_at": "2024-10-06T10:30:00Z"
+  }
+}
+```
+
+**Benefits:**
+- Know WHO created each endpoint
+- Track WHICH test suite owns it
+- Auto-cleanup when pipeline completes
+- Audit trail for compliance
+
+---
+
+### 9. **Slack Alerts**
+```
+🚨 PII Detected in Webhook
+
+Bay: hmf-integration
+Owner: @mark.dunatov
+Team: QA
+
+Sensitive data found:
+• SSN detected (masked: ***-**-1234)
+• Credit score: 720
+• Loan amount: $35,000
+
+Action required:
+✅ Verify test completed
+✅ Delete endpoint if no longer needed
+
+[View Details] [Delete Now]
+```
+
+---
+
+### 10. **Compliance Dashboard**
+
+**Real-time view of data exposure:**
+
+```
+📊 Active Endpoints: 12
+⚠️  With PII: 3
+⏰ Oldest: 4 days
+🔴 Expiring soon: 2
+
+Recent Alerts:
+🚨 SSN detected in hmf-integration (2 hours ago)
+⚠️  Credit score in tdc-test (5 hours ago)
+✅ rbc-staging cleaned up (1 day ago)
+```
+
+**Filters:**
+- By team
+- By PII type
+- By age
+- By compliance status
+
+---
+
 ## 📊 Comparison
 
 ### Current Workflow:
@@ -186,14 +280,16 @@ Assert.That(webhook.Status, Is.EqualTo("APPROVED"));
 6. Debug failure 3 days later      → Data might be gone
 ```
 
-### With Webhook Pitstop:
+### With Test Data Compliance Guardian:
 ```
-1. Use named bay "hmf-test"        → Permanent URL
+1. Use named bay "hmf-test"        → Permanent URL + tracked owner
 2. Register with BMT/HYN           → Use same URL always
 3. Run test                        → Real-time visibility
-4. Query by dealId                 → Fast, precise
-5. Test completes                  → Auto-cleanup ✅
-6. Debug failure 3 days later      → Data still there
+4. Webhook arrives with SSN        → 🚨 Slack alert sent
+5. Query by dealId                 → Fast, precise
+6. Test completes                  → Auto-cleanup ✅
+7. PII marked on dashboard         → Compliance tracked
+8. Debug failure 3 days later      → Data still there (if needed)
 ```
 
 ---
@@ -205,10 +301,11 @@ Assert.That(webhook.Status, Is.EqualTo("APPROVED"));
 - Pro: $9/user/month
 - **For team of 10:** $90/month = $1,080/year
 
-### Webhook Pitstop (Self-Hosted):
+### Test Data Compliance Guardian (Self-Hosted):
 - AWS Elastic Beanstalk: ~$15/month = $180/year
+- Slack integration: Free (using webhooks)
 - **Savings:** $900/year
-- **Bonus:** Unlimited requests, full control
+- **Bonus:** Unlimited requests, full control, compliance tracking
 
 ---
 
@@ -219,12 +316,20 @@ Assert.That(webhook.Status, Is.EqualTo("APPROVED"));
 - [ ] Deploy fix to CI
 - [ ] Verify data deletion working
 
-### Phase 2: Deploy Webhook Pitstop (Week 2-3)
+### Phase 2: Deploy Test Data Compliance Guardian (Week 2-3)
 - [ ] Deploy to AWS
+- [ ] Set up Slack webhook integration
+- [ ] Implement PII detection (SSN, SIN, credit scores)
 - [ ] Test with one partner (BMT)
 - [ ] Migrate remaining partners
 
-### Phase 3: QA-Specific Features (Week 4+)
+### Phase 3: Compliance Features (Week 4-5)
+- [ ] Ownership tracking (user/team/repo/pipeline)
+- [ ] Compliance dashboard
+- [ ] Email/phone number detection
+- [ ] Auto-expiration policies
+
+### Phase 4: QA-Specific Features (Week 6+)
 - [ ] Search by dealId
 - [ ] Export test fixtures
 - [ ] Schema validation
@@ -239,9 +344,11 @@ Assert.That(webhook.Status, Is.EqualTo("APPROVED"));
 - ✅ Don't want to maintain new service
 - ✅ Webhook.site features are sufficient
 
-### Go with Webhook Pitstop if:
+### Go with Test Data Compliance Guardian if:
 - ✅ Want full control of data
-- ✅ Need custom QA features
+- ✅ Need compliance tracking & PII detection
+- ✅ Want Slack alerts for sensitive data
+- ✅ Need ownership/audit trails
 - ✅ Cost savings matter
 - ✅ Want permanent test history
 - ✅ Need search/query capabilities
@@ -253,7 +360,7 @@ Assert.That(webhook.Status, Is.EqualTo("APPROVED"));
 **Both:**
 
 1. **Short-term (this sprint):** Add cleanup to fix immediate security issue
-2. **Long-term (next month):** Evaluate Webhook Pitstop pilot with one partner
+2. **Long-term (next month):** Evaluate Test Data Compliance Guardian pilot with one partner
 
 **This gives us:**
 - ✅ Immediate risk mitigation
@@ -266,9 +373,11 @@ Assert.That(webhook.Status, Is.EqualTo("APPROVED"));
 
 1. Are we comfortable with customer data on external service?
 2. Do we have compliance requirements around test data?
-3. Would searchable webhook history help debug failures?
-4. Is $90/month for webhook.site worth it vs. self-hosting?
-5. Who would maintain Webhook Pitstop?
+3. Would automated PII detection + Slack alerts help?
+4. Do we need ownership tracking for audit purposes?
+5. Would searchable webhook history help debug failures?
+6. Is $90/month for webhook.site worth it vs. self-hosting?
+7. Who would maintain Test Data Compliance Guardian?
 
 ---
 
@@ -278,8 +387,9 @@ Assert.That(webhook.Status, Is.EqualTo("APPROVED"));
 
 1. Schedule 30-min meeting to review options
 2. Get compliance team input on data handling
-3. Run pilot with Webhook Pitstop
-4. Make decision based on real usage
+3. Run pilot with Test Data Compliance Guardian
+4. Test PII detection with sample webhooks
+5. Make decision based on real usage
 
 ---
 
@@ -290,36 +400,45 @@ Let's discuss at stand-up.
 ---
 
 ### **Built during Hackathon 2024 by [Your Team]**
-**Demo:** https://webhook-pitstop-demo.aws.com
-**Repo:** https://github.com/your-org/webhook-pitstop
+**Demo:** https://compliance-guardian-demo.aws.com
+**Repo:** https://github.com/your-org/qa-testing-garage
 
 ---
 
 ## 🏁 For Hackathon Judges
 
 **The Discovery:**
-While building automation tests, we discovered our test suite was leaving sensitive customer data (SSN, credit scores, loan amounts) on webhook.site for 30+ days with no cleanup. This is a real compliance risk.
+While building automation tests, we discovered our test suite was leaving sensitive customer data (SSN, credit scores, loan amounts) on webhook.site for 30+ days with no cleanup. This is a real compliance risk affecting EVERY team using temporary endpoints.
 
 **The Solution:**
-Webhook Pitstop - A self-hosted webhook testing platform with:
+Test Data Compliance Guardian - A self-hosted compliance-aware testing platform with:
+- **Automatic PII detection** (SSN, SIN, credit scores, emails, phone)
+- **Slack alerts** when sensitive data detected
+- **Ownership tracking** (team/repo/pipeline/user)
+- **Compliance dashboard** showing data exposure status
 - Named, reusable webhook URLs
 - Real-time WebSocket updates
 - Immediate data cleanup
-- Full control and audit trail
-- Built for automotive QA workflows
+- Full audit trail
 
 **Tech Stack:**
-- FastAPI (Python) backend
-- React + Vite frontend
+- FastAPI (Python) backend with PII detection patterns
+- React + Vite frontend with real-time dashboard
 - SQLite/PostgreSQL database
-- WebSockets for real-time
+- WebSockets for real-time updates
+- Slack webhook integration
 - Docker containerized
 - Deployed on AWS
 
 **Business Impact:**
-- Eliminates data security risk
-- Saves $900/year vs. webhook.site Pro
-- Faster debugging with searchable history
-- Custom QA features we control
+- ✅ Eliminates data security & compliance risk
+- ✅ Automatic PII detection = no manual audit needed
+- ✅ Ownership tracking = full accountability
+- ✅ Saves $900/year vs. webhook.site Pro
+- ✅ Not just for QA - Platform tool for all teams
+- ✅ Faster debugging with searchable history
 
-🏁 **Inspect webhooks at race speed!**
+**What Makes This Different:**
+This isn't just a webhook tool. It's a **compliance layer** for ALL temporary testing endpoints. Any team using webhook.site, RequestBin, or mock APIs can use this to ensure they're not leaking sensitive data.
+
+🏁 **Test at race speed, compliance guaranteed!**
