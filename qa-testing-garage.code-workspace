@@ -1,0 +1,241 @@
+{
+  "folders": [
+    {
+      "name": "🏎️ QA Testing Garage (Root)",
+      "path": "."
+    },
+    {
+      "name": "🏁 Webhook Inspector - API",
+      "path": "apps/webhook-inspector/api"
+    },
+    {
+      "name": "🌐 Webhook Inspector - Web",
+      "path": "apps/webhook-inspector/web"
+    },
+    {
+      "name": "🏠 Portal",
+      "path": "apps/portal"
+    },
+    {
+      "name": "🎨 Shared UI",
+      "path": "packages/shared-ui"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/*.pyc": true,
+      "**/node_modules": true,
+      "**/.git": true,
+      "**/venv": true,
+      "**/.venv": true,
+      "**/dist": true,
+      "**/.DS_Store": true,
+      "**/poetry.lock": false,
+      "**/package-lock.json": false
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/venv": true,
+      "**/.venv": true,
+      "**/dist": true
+    },
+    "python.defaultInterpreterPath": "${workspaceFolder:🏁 Webhook Inspector - API}/.venv/bin/python",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.formatting.provider": "black",
+    "[python]": {
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+      }
+    },
+    "[javascript]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascriptreact]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescriptreact]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "bradlc.vscode-tailwindcss",
+      "ms-azuretools.vscode-docker"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "🏁 Run Webhook API (Poetry)",
+        "type": "python",
+        "request": "launch",
+        "module": "uvicorn",
+        "args": ["main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"],
+        "cwd": "${workspaceFolder:🏁 Webhook Inspector - API}",
+        "env": {
+          "DATABASE_URL": "sqlite:///./data/pitstop.db"
+        },
+        "justMyCode": false
+      },
+      {
+        "name": "🏁 Run Webhook API (Docker)",
+        "type": "docker",
+        "request": "launch",
+        "preLaunchTask": "docker-run: debug",
+        "python": {
+          "pathMappings": [
+            {
+              "localRoot": "${workspaceFolder}/apps/webhook-inspector/api",
+              "remoteRoot": "/app"
+            }
+          ],
+          "projectType": "fastapi"
+        }
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "🏁 Start Webhook API (Poetry)",
+        "type": "shell",
+        "command": "poetry run uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+        "options": {
+          "cwd": "${workspaceFolder}/apps/webhook-inspector/api"
+        },
+        "problemMatcher": [],
+        "isBackground": true,
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "dedicated",
+          "showReuseMessage": true,
+          "clear": false
+        }
+      },
+      {
+        "label": "🌐 Start Webhook Web (Vite)",
+        "type": "shell",
+        "command": "npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder}/apps/webhook-inspector/web"
+        },
+        "problemMatcher": [],
+        "isBackground": true,
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "dedicated",
+          "showReuseMessage": true,
+          "clear": false
+        }
+      },
+      {
+        "label": "🚀 Start Webhook Inspector (Both Apps)",
+        "dependsOn": [
+          "🏁 Start Webhook API (Poetry)",
+          "🌐 Start Webhook Web (Vite)"
+        ],
+        "problemMatcher": [],
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": true,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "🐳 Docker: Build & Start All",
+        "type": "shell",
+        "command": "docker-compose up --build",
+        "options": {
+          "cwd": "${workspaceFolder}/docker"
+        },
+        "problemMatcher": [],
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": true,
+          "panel": "dedicated"
+        }
+      },
+      {
+        "label": "🐳 Docker: Stop All",
+        "type": "shell",
+        "command": "docker-compose down",
+        "options": {
+          "cwd": "${workspaceFolder}/docker"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "📦 Install: Webhook API Dependencies",
+        "type": "shell",
+        "command": "poetry install",
+        "options": {
+          "cwd": "${workspaceFolder}/apps/webhook-inspector/api"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "📦 Install: Webhook Web Dependencies",
+        "type": "shell",
+        "command": "npm install",
+        "options": {
+          "cwd": "${workspaceFolder}/apps/webhook-inspector/web"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "📦 Install: Portal Dependencies",
+        "type": "shell",
+        "command": "npm install",
+        "options": {
+          "cwd": "${workspaceFolder}/apps/portal"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "📦 Install: Shared UI Dependencies",
+        "type": "shell",
+        "command": "npm install",
+        "options": {
+          "cwd": "${workspaceFolder}/packages/shared-ui"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "📦 Install: All Dependencies",
+        "dependsOn": [
+          "📦 Install: Webhook API Dependencies",
+          "📦 Install: Webhook Web Dependencies",
+          "📦 Install: Portal Dependencies",
+          "📦 Install: Shared UI Dependencies"
+        ],
+        "problemMatcher": []
+      }
+    ]
+  }
+}
