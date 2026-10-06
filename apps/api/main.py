@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 import uuid
 import time
 import os
+import re
 from typing import Dict, List
 
 from database import engine, get_db
@@ -82,6 +83,38 @@ class PitCrewManager:
                     pass  # Connection might be closed
 
 pit_crew = PitCrewManager()
+
+# ═══════════════════════════════════════════════════════════════════
+# Security: Data Masking for Sensitive Information
+# ═══════════════════════════════════════════════════════════════════
+
+def mask_sensitive_data(text: str) -> str:
+    """
+    Mask sensitive data in webhook payloads for security/compliance.
+
+    Masks:
+    - SSN: 123-45-6789 → ***-**-6789
+    - Credit Cards: 1234-5678-9012-3456 → ****-****-****-3456
+    - Email: john.doe@example.com → j***@example.com
+    - Phone: (555) 123-4567 → (***) ***-4567
+    """
+    if not text:
+        return text
+
+    # Mask SSN (US format: 123-45-6789 or 123456789)
+    text = re.sub(r'\b\d{3}-\d{2}-(\d{4})\b', r'***-**-\1', text)
+    text = re.sub(r'\b(\d{3})(\d{2})(\d{4})\b', r'***\2\3', text)
+
+    # Mask credit cards (various formats)
+    text = re.sub(r'\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?(\d{4})\b', r'****-****-****-\1', text)
+
+    # Mask email addresses (keep domain for context)
+    text = re.sub(r'\b([a-zA-Z])[a-zA-Z0-9._%+-]*@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b', r'\1***@\2', text)
+
+    # Mask phone numbers
+    text = re.sub(r'\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?(\d{4})\b', r'(***) ***-\1', text)
+
+    return text
 
 # ═══════════════════════════════════════════════════════════════════
 # API Endpoints
@@ -239,12 +272,15 @@ async def inspect_webhook(
     body = await request.body()
     body_text = body.decode('utf-8', errors='replace') if body else None
 
-    # Create diagnostic record
+    # Apply data masking for security compliance
+    masked_body = mask_sensitive_data(body_text) if body_text else None
+
+    # Create diagnostic record (with masked sensitive data)
     pit_request = PitLaneRequest(
         pit_id=pit_id,
         method=request.method,
         headers=dict(request.headers),
-        body=body_text,
+        body=masked_body,
         query_params=dict(request.query_params),
         ip_address=request.client.host if request.client else "unknown",
         lap_time_ms=0,  # Will be updated below
