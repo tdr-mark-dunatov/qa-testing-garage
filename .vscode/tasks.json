@@ -80,6 +80,18 @@
       "type": "shell",
       "command": "cd apps/webhook-inspector/web && npm install",
       "problemMatcher": []
+    },
+    {
+      "label": "🔍 Lint Backend (Ruff)",
+      "type": "shell",
+      "command": "cd apps/webhook-inspector/api && poetry run ruff check .",
+      "problemMatcher": []
+    },
+    {
+      "label": "🔧 Fix Backend Linting (Ruff)",
+      "type": "shell",
+      "command": "cd apps/webhook-inspector/api && poetry run ruff check --fix .",
+      "problemMatcher": []
     }
   ]
 }
