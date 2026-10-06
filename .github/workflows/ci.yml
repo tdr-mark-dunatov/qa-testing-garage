@@ -75,7 +75,7 @@ jobs:
 
       - name: Test docker-compose
         working-directory: docker
-        run: docker-compose config
+        run: docker compose config
 
   compliance-check:
     name: 🛡️ Compliance Check
