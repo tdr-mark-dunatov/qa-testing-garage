@@ -25,3 +25,7 @@ spec:
   lifecycle: experimental
   owner: qa-team
   system: testing-tools
+  vertical: qa
+  availability: low
+  confidentiality: internal
+  integrity: low
