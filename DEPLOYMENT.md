@@ -177,13 +177,13 @@ Show how QA can:
 - Check response times
 - Debug integration issues
 
-### 4. Monorepo Extensibility
-Show the README section about future apps:
+### 4. Extensibility
+Show the clean app structure for future expansion:
 - `apps/cli` - Command line tool
 - `apps/mobile` - Mobile inspection
 - `apps/admin` - Team collaboration
 
-"Built as a monorepo so it's easy to add CLI tools, mobile apps, etc!"
+"Clean app structure makes it easy to add CLI tools, mobile apps, etc!"
 
 ---
 
@@ -233,11 +233,13 @@ Edit `docker-compose.yml`:
 
 ## What Makes This Special?
 
-✅ **True Monorepo** - Not just a folder with two apps, uses npm workspaces + shared packages
+✅ **Clean Architecture** - Separate apps with clear boundaries, easy to extend
 
 ✅ **Real-time** - WebSocket-powered live updates (not polling!)
 
 ✅ **Production-ready** - Docker, health checks, multi-stage builds
+
+✅ **Modern Stack** - Poetry for Python, Vite for frontend, FastAPI
 
 ✅ **Racing Theme** - Perfect for automotive companies
 

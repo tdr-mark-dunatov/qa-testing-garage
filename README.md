@@ -2,23 +2,20 @@
 
 **Real-time webhook inspection tool with race-speed diagnostics for QA testing**
 
-A true monorepo built for scale - inspect webhooks at lightning speed with a racing-themed UI. Built for automotive QA teams who need to capture, analyze, and debug webhook integrations.
+Inspect webhooks at lightning speed with a racing-themed UI. Built for automotive QA teams who need to capture, analyze, and debug webhook integrations.
 
-## Monorepo Structure
+## Project Structure
 
 ```
 webhook-pitstop/
 ├── apps/
-│   ├── api/          FastAPI backend with WebSockets
-│   └── web/          React + Vite frontend
-├── packages/
-│   └── shared/       Shared types, constants, utilities
+│   ├── api/          FastAPI backend (Poetry)
+│   └── web/          React + Vite frontend (npm)
 ├── docker/
 │   └── docker-compose.yml
-├── scripts/
-│   ├── dev.sh        Development script (Unix)
-│   └── dev.bat       Development script (Windows)
-└── package.json      Root workspace config
+└── scripts/
+    ├── dev.sh        Development script (Unix)
+    └── dev.bat       Development script (Windows)
 ```
 
 ## Features
@@ -29,7 +26,7 @@ webhook-pitstop/
 - 📊 **Performance Metrics** - Track fastest/slowest/average response times
 - 🎨 **Racing Theme** - Car-themed UI for automotive companies
 - 🐳 **Docker Ready** - One command deployment
-- 📦 **Monorepo** - Easily add more apps (CLI, mobile, admin, etc.)
+- 📦 **Multi-App Ready** - Clean structure to add CLI, mobile, admin apps
 
 ## Quick Start
 
@@ -96,57 +93,36 @@ Access: http://localhost
 - Compare working vs broken payloads
 - Identify timing/latency problems
 
-## Monorepo Apps
+## Applications
 
-### Current Apps
-
-#### `apps/api` - FastAPI Backend
+### `apps/api` - FastAPI Backend
 - WebSocket server for real-time updates
 - SQLite/PostgreSQL support
 - REST API with auto-generated docs
+- Poetry for dependency management
 
-#### `apps/web` - React Frontend
+### `apps/web` - React Frontend
 - Racing-themed UI with Tailwind CSS
 - Real-time WebSocket connection
 - Responsive design
+- Vite for blazing-fast dev server
 
 ### Future Apps (Easy to Add!)
 
-#### `apps/cli` - Command Line Tool
-```bash
-pitstop create                    # Create new pit lane
-pitstop watch <pit-id>            # Watch requests in terminal
-pitstop export <pit-id> --json    # Export requests
-```
+The clean `apps/` structure makes it simple to add:
 
-#### `apps/mobile` - React Native App
-- Mobile webhook inspection
-- Push notifications
-- QR code scanning
-
-#### `apps/admin` - Admin Dashboard
-- User management
-- Analytics
-- Team collaboration
-
-## Shared Packages
-
-### `packages/shared`
-Shared code used across all apps:
-- Constants (HTTP methods, colors, emojis)
-- Type definitions
-- Utility functions
+- **CLI Tool** - Watch requests in terminal, export data
+- **Mobile App** - React Native for iOS/Android
+- **Admin Dashboard** - User management and analytics
 
 ## Architecture
 
 ```
 ┌──────────────┐         ┌──────────────┐
 │   apps/web   │ ◄─────► │   apps/api   │
-│   (React)    │         │  (FastAPI)   │
+│   (React)    │ WebSocket│  (FastAPI)   │
+│   + Vite     │  + HTTP  │  + Poetry    │
 └──────────────┘         └──────────────┘
-       │                        │
-       └────► @shared ◄─────────┘
-              (constants)
 ```
 
 ## Technology Stack
@@ -166,11 +142,7 @@ Shared code used across all apps:
 **Deployment:**
 - Docker + Docker Compose
 - Nginx (reverse proxy)
-
-**Monorepo:**
-- npm workspaces
-- Shared packages
-- Concurrent dev scripts
+- Multi-stage builds for optimized images
 
 ## Configuration
 
@@ -216,14 +188,11 @@ mkdir apps/your-new-app
 cd apps/your-new-app
 ```
 
-2. Initialize your app (React, CLI, etc.)
+2. Initialize your app (React, CLI, Python, etc.)
 
-3. Import shared code:
-```javascript
-import { HTTP_METHODS } from '@webhook-pitstop/shared';
-```
+3. Add Dockerfile for containerization
 
-4. Add to root `package.json` workspaces (already configured!)
+4. Update `docker-compose.yml` to include the new service
 
 ### Testing
 
@@ -240,11 +209,13 @@ npm test
 ### Building
 
 ```bash
-# Build everything
+# Build frontend
+cd apps/web
 npm run build
 
-# Build specific app
-cd apps/web && npm run build
+# Build with Docker
+cd docker
+docker-compose build
 ```
 
 ## Deployment
@@ -295,4 +266,4 @@ MIT License - See LICENSE file
 
 🏁 **Inspect webhooks at race speed!**
 
-**Monorepo = Easy to scale. Add CLI tools, mobile apps, admin dashboards - all sharing the same core logic!**
+**Clean architecture = Easy to scale. Add CLI tools, mobile apps, admin dashboards with the same patterns!**
