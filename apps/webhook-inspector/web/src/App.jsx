@@ -115,6 +115,29 @@ function App() {
     setDiagnostics(null);
   };
 
+  const deleteBay = async (bayId, bayName, event) => {
+    // Prevent opening the bay when clicking delete (if called from list)
+    if (event) event.stopPropagation();
+
+    if (!confirm(`🗑️ Delete bay "${bayName || bayId}" completely?\n\nThis will delete:\n- The bay\n- All captured webhooks\n\nThis action cannot be undone.`)) return;
+
+    try {
+      await axios.delete(`${API_BASE}/api/bay/${bayId}`);
+
+      // If we're viewing this bay, go back home
+      if (pitId === bayId) {
+        setPitId('');
+        setRequests([]);
+        setShowDashboard(false);
+      } else {
+        // Otherwise refresh the bay list
+        await loadAllBays();
+      }
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Error deleting bay');
+    }
+  };
+
   const getMethodColor = (method) => {
     const colors = {
       'GET': 'text-blue-600 bg-blue-50',
@@ -257,7 +280,7 @@ function App() {
                     className="p-4 border-2 border-gray-300 rounded-lg hover:border-racing-red hover:bg-racing-red/5 cursor-pointer transition-all"
                   >
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-bold text-lg text-racing-red">
                           {bay.is_named ? '🏗️' : '⚡'} {bay.bay_name || bay.bay_id}
                         </h3>
@@ -268,14 +291,23 @@ function App() {
                           ID: {bay.bay_id}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-racing-red">{bay.total_requests}</p>
-                        <p className="text-xs text-gray-500">webhooks</p>
-                        {bay.last_request_at && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(bay.last_request_at).toLocaleString()}
-                          </p>
-                        )}
+                      <div className="text-right flex flex-col items-end gap-2">
+                        <div>
+                          <p className="text-2xl font-bold text-racing-red">{bay.total_requests}</p>
+                          <p className="text-xs text-gray-500">webhooks</p>
+                          {bay.last_request_at && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {new Date(bay.last_request_at).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => deleteBay(bay.bay_id, bay.bay_name, e)}
+                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-bold transition-colors"
+                          title="Delete this bay completely"
+                        >
+                          🗑️ Delete
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -308,6 +340,13 @@ function App() {
                   className="bg-gradient-to-r from-racing-red to-racing-red-dark text-white px-8 py-4 rounded-lg hover:scale-105 font-bold shadow-lg transform transition-all"
                 >
                   🗑️ Clear
+                </button>
+                <button
+                  onClick={() => deleteBay(pitId, pitId)}
+                  className="bg-gradient-to-r from-red-700 to-red-900 text-white px-8 py-4 rounded-lg hover:scale-105 font-bold shadow-lg transform transition-all"
+                  title="Delete this bay completely"
+                >
+                  🗑️ Delete Bay
                 </button>
               </div>
               <p className="text-sm text-gray-700 font-semibold">
