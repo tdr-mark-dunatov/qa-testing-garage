@@ -27,5 +27,5 @@ metadata:
 spec:
   type: service
   lifecycle: experimental
-  owner: dealertrack-platform
+  owner: dealertrack
   system: testing-tools
