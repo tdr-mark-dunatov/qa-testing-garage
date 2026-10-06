@@ -8,14 +8,28 @@ from datetime import datetime
 
 Base = declarative_base()
 
+class ReceivingBay(Base):
+    """
+    Represents a Webhook Receiving Bay (named or quick)
+    """
+    __tablename__ = "receiving_bays"
+
+    id = Column(Integer, primary_key=True, index=True)
+    bay_id = Column(String(100), unique=True, index=True, nullable=False, comment="Bay identifier (name or UUID)")
+    bay_name = Column(String(200), comment="Human-readable bay name")
+    description = Column(Text, comment="Bay description/purpose")
+    is_named = Column(Integer, default=0, comment="1 if named bay, 0 if quick/random")
+    created_at = Column(DateTime, default=datetime.utcnow, comment="Bay creation time")
+    last_request_at = Column(DateTime, comment="Last webhook received")
+
 class PitLaneRequest(Base):
     """
-    Represents a webhook request entering the pit lane for inspection
+    Represents a webhook request entering the receiving bay for inspection
     """
     __tablename__ = "pit_lane_requests"
 
     id = Column(Integer, primary_key=True, index=True)
-    pit_id = Column(String(36), index=True, nullable=False, comment="Pit lane identifier (webhook ID)")
+    pit_id = Column(String(100), index=True, nullable=False, comment="Bay identifier (webhook ID)")
     method = Column(String(10), nullable=False, comment="HTTP method (engine type)")
     headers = Column(JSON, comment="Request headers (diagnostic data)")
     body = Column(Text, comment="Request body (payload)")

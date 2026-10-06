@@ -10,15 +10,55 @@ function App() {
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [diagnostics, setDiagnostics] = useState(null);
+  const [allBays, setAllBays] = useState([]);
+  const [showDashboard, setShowDashboard] = useState(false);
+  const [bayName, setBayName] = useState('');
+  const [bayDescription, setBayDescription] = useState('');
+  const [showNamedForm, setShowNamedForm] = useState(false);
   const ws = useRef(null);
 
-  const createPitLane = async () => {
-    const { data } = await axios.post(`${API_BASE}/api/pit/new`);
+  const createQuickBay = async () => {
+    const { data } = await axios.post(`${API_BASE}/api/bay/quick`);
     setPitId(data.pit_id);
     setPitLaneUrl(data.pit_lane_url);
     setRequests([]);
     setSelectedRequest(null);
+    setShowDashboard(false);
     connectWebSocket(data.pit_id);
+  };
+
+  const createNamedBay = async () => {
+    if (!bayName.trim()) return;
+    try {
+      const { data } = await axios.post(`${API_BASE}/api/bay/named`, {
+        bay_name: bayName,
+        description: bayDescription
+      });
+      setPitId(data.pit_id);
+      setPitLaneUrl(data.pit_lane_url);
+      setRequests([]);
+      setSelectedRequest(null);
+      setShowDashboard(false);
+      setShowNamedForm(false);
+      setBayName('');
+      setBayDescription('');
+      connectWebSocket(data.pit_id);
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Error creating bay');
+    }
+  };
+
+  const loadAllBays = async () => {
+    const { data } = await axios.get(`${API_BASE}/api/bays`);
+    setAllBays(data);
+    setShowDashboard(true);
+  };
+
+  const openBay = (bay) => {
+    setPitId(bay.bay_id);
+    setPitLaneUrl(`${window.location.origin}/bay/${bay.bay_id}`);
+    setShowDashboard(false);
+    connectWebSocket(bay.bay_id);
   };
 
   const connectWebSocket = (id) => {
@@ -99,21 +139,114 @@ function App() {
           <p className="text-gray-600 text-lg font-medium">⚡ Inspect webhooks at race speed</p>
         </div>
 
-        {/* Pit Lane Creation */}
+        {/* Bay Creation / Dashboard */}
         <div className="bg-white rounded-lg shadow-2xl p-6 mb-8 border-4 border-racing-red">
-          {!pitId ? (
+          {!pitId && !showDashboard ? (
             <div className="text-center py-8">
-              <button
-                onClick={createPitLane}
-                className="bg-gradient-to-r from-racing-red to-racing-red-dark text-white px-12 py-6 rounded-xl text-2xl font-bold hover:scale-105 transform transition-all shadow-2xl hover:shadow-racing-red/50 border-4 border-racing-red-dark"
-              >
-                🏁 Open Receiving Bay
-              </button>
-              <p className="text-gray-600 mt-6 text-lg font-medium">Generate a unique Webhook Receiving Bay for testing</p>
+              <div className="flex gap-4 justify-center mb-6">
+                <button
+                  onClick={() => setShowNamedForm(!showNamedForm)}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl text-xl font-bold hover:scale-105 transform transition-all shadow-lg"
+                >
+                  🏗️ Create Named Bay
+                </button>
+                <button
+                  onClick={createQuickBay}
+                  className="bg-gradient-to-r from-racing-red to-racing-red-dark text-white px-8 py-4 rounded-xl text-xl font-bold hover:scale-105 transform transition-all shadow-lg"
+                >
+                  ⚡ Quick Bay
+                </button>
+                <button
+                  onClick={loadAllBays}
+                  className="bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-4 rounded-xl text-xl font-bold hover:scale-105 transform transition-all shadow-lg"
+                >
+                  📋 View All Bays
+                </button>
+              </div>
+
+              {showNamedForm && (
+                <div className="mt-6 max-w-md mx-auto bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
+                  <h3 className="text-xl font-bold text-blue-900 mb-4">Create Named Receiving Bay</h3>
+                  <input
+                    type="text"
+                    placeholder="Bay name (e.g., hmf-integration)"
+                    value={bayName}
+                    onChange={(e) => setBayName(e.target.value)}
+                    className="w-full p-3 border-2 border-blue-300 rounded-lg mb-3 font-semibold"
+                  />
+                  <textarea
+                    placeholder="Description (optional)"
+                    value={bayDescription}
+                    onChange={(e) => setBayDescription(e.target.value)}
+                    className="w-full p-3 border-2 border-blue-300 rounded-lg mb-4 font-medium"
+                    rows="2"
+                  />
+                  <button
+                    onClick={createNamedBay}
+                    className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700"
+                  >
+                    Create Bay
+                  </button>
+                </div>
+              )}
+
+              <p className="text-gray-600 mt-6 text-lg font-medium">
+                Named bays are reusable • Quick bays are temporary
+              </p>
+            </div>
+          ) : !pitId && showDashboard ? (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-racing-red">📋 All Receiving Bays</h2>
+                <button
+                  onClick={() => setShowDashboard(false)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-gray-600"
+                >
+                  ← Back
+                </button>
+              </div>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {allBays.map((bay) => (
+                  <div
+                    key={bay.bay_id}
+                    onClick={() => openBay(bay)}
+                    className="p-4 border-2 border-gray-300 rounded-lg hover:border-racing-red hover:bg-racing-red/5 cursor-pointer transition-all"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-bold text-lg text-racing-red">
+                          {bay.is_named ? '🏗️' : '⚡'} {bay.bay_name || bay.bay_id}
+                        </h3>
+                        {bay.description && (
+                          <p className="text-sm text-gray-600">{bay.description}</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">
+                          ID: {bay.bay_id}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-racing-red">{bay.total_requests}</p>
+                        <p className="text-xs text-gray-500">webhooks</p>
+                        {bay.last_request_at && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(bay.last_request_at).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <div>
               <div className="flex gap-4 items-center mb-4">
+                <button
+                  onClick={() => { setPitId(''); setRequests([]); setShowDashboard(false); }}
+                  className="bg-gray-500 text-white px-6 py-4 rounded-lg hover:bg-gray-600 font-bold"
+                >
+                  ← Home
+                </button>
                 <input
                   type="text"
                   value={pitLaneUrl}

@@ -35,3 +35,32 @@ class DiagnosticSummary(BaseModel):
     fastest_lap_ms: Optional[int] = None
     slowest_lap_ms: Optional[int] = None
     average_lap_ms: Optional[float] = None
+
+class ReceivingBayCreate(BaseModel):
+    """Request to create a named receiving bay"""
+    bay_name: str
+    description: Optional[str] = None
+
+class ReceivingBaySchema(BaseModel):
+    """Schema for receiving bay"""
+    id: int
+    bay_id: str
+    bay_name: Optional[str] = None
+    description: Optional[str] = None
+    is_named: int
+    created_at: datetime
+    last_request_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class ReceivingBayWithStats(BaseModel):
+    """Receiving bay with request statistics"""
+    bay_id: str
+    bay_name: Optional[str] = None
+    description: Optional[str] = None
+    is_named: bool
+    created_at: datetime
+    last_request_at: Optional[datetime] = None
+    total_requests: int
+    fastest_lap_ms: Optional[int] = None

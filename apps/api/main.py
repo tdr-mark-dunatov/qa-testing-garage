@@ -11,8 +11,15 @@ import os
 from typing import Dict, List
 
 from database import engine, get_db
-from models import Base, PitLaneRequest
-from schemas import PitLaneRequestSchema, PitLaneCreateResponse, DiagnosticSummary
+from models import Base, PitLaneRequest, ReceivingBay
+from schemas import (
+    PitLaneRequestSchema,
+    PitLaneCreateResponse,
+    DiagnosticSummary,
+    ReceivingBayCreate,
+    ReceivingBaySchema,
+    ReceivingBayWithStats
+)
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -95,24 +102,123 @@ def health_check():
     """Health check endpoint"""
     return {"status": "🏁 Ready to race!", "engine": "running"}
 
-@app.post("/api/pit/new", response_model=PitLaneCreateResponse)
-def create_pit_lane(request: Request):
+# ═══════════════════════════════════════════════════════════════════
+# Receiving Bay Management
+# ═══════════════════════════════════════════════════════════════════
+
+@app.post("/api/bay/named", response_model=PitLaneCreateResponse)
+def create_named_bay(bay_data: ReceivingBayCreate, request: Request, db: Session = Depends(get_db)):
     """
-    🏁 Create a new pit lane for webhook inspection
+    🏁 Create a named Webhook Receiving Bay
+
+    Named bays are reusable and easy to remember for repeated testing
+    """
+    import re
+    import datetime
+
+    # Sanitize bay name to URL-safe format
+    bay_id = re.sub(r'[^a-z0-9-]', '-', bay_data.bay_name.lower()).strip('-')
+
+    # Check if bay already exists
+    existing = db.query(ReceivingBay).filter(ReceivingBay.bay_id == bay_id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail=f"Receiving bay '{bay_id}' already exists!")
+
+    # Create named bay
+    bay = ReceivingBay(
+        bay_id=bay_id,
+        bay_name=bay_data.bay_name,
+        description=bay_data.description,
+        is_named=1,
+        created_at=datetime.datetime.utcnow()
+    )
+    db.add(bay)
+    db.commit()
+    db.refresh(bay)
+
+    base_url = str(request.base_url).rstrip('/')
+    bay_url = f"{base_url}/bay/{bay_id}"
+
+    return PitLaneCreateResponse(
+        pit_id=bay_id,
+        pit_lane_url=bay_url,
+        message=f"🏁 Receiving Bay '{bay_data.bay_name}' ready!"
+    )
+
+@app.post("/api/bay/quick", response_model=PitLaneCreateResponse)
+def create_quick_bay(request: Request, db: Session = Depends(get_db)):
+    """
+    ⚡ Create a quick (random) Webhook Receiving Bay
+
+    Quick bays have random UUIDs for one-off testing
+    """
+    import datetime
+
+    bay_id = str(uuid.uuid4())
+
+    # Create quick bay
+    bay = ReceivingBay(
+        bay_id=bay_id,
+        bay_name=f"Quick Bay {bay_id[:8]}",
+        is_named=0,
+        created_at=datetime.datetime.utcnow()
+    )
+    db.add(bay)
+    db.commit()
+
+    base_url = str(request.base_url).rstrip('/')
+    bay_url = f"{base_url}/bay/{bay_id}"
+
+    return PitLaneCreateResponse(
+        pit_id=bay_id,
+        pit_lane_url=bay_url,
+        message=f"⚡ Quick bay {bay_id[:8]} ready!"
+    )
+
+@app.get("/api/bays", response_model=List[ReceivingBayWithStats])
+def list_all_bays(db: Session = Depends(get_db)):
+    """
+    📋 List all Receiving Bays with statistics
+
+    Returns all named and quick bays with request counts
+    """
+    from sqlalchemy import func
+
+    bays = db.query(ReceivingBay).order_by(ReceivingBay.created_at.desc()).all()
+
+    result = []
+    for bay in bays:
+        # Get stats for this bay
+        stats = db.query(
+            func.count(PitLaneRequest.id).label('total'),
+            func.min(PitLaneRequest.lap_time_ms).label('fastest')
+        ).filter(PitLaneRequest.pit_id == bay.bay_id).first()
+
+        result.append(ReceivingBayWithStats(
+            bay_id=bay.bay_id,
+            bay_name=bay.bay_name,
+            description=bay.description,
+            is_named=bool(bay.is_named),
+            created_at=bay.created_at,
+            last_request_at=bay.last_request_at,
+            total_requests=stats.total or 0,
+            fastest_lap_ms=stats.fastest
+        ))
+
+    return result
+
+@app.post("/api/pit/new", response_model=PitLaneCreateResponse)
+def create_pit_lane(request: Request, db: Session = Depends(get_db)):
+    """
+    🏁 Create a new pit lane for webhook inspection (LEGACY - use /api/bay/quick instead)
 
     Generates a unique pit ID and webhook URL
     """
-    pit_id = str(uuid.uuid4())
-    base_url = str(request.base_url).rstrip('/')
-    pit_lane_url = f"{base_url}/pit/{pit_id}"
-
-    return PitLaneCreateResponse(
-        pit_id=pit_id,
-        pit_lane_url=pit_lane_url,
-        message=f"🏁 Pit lane {pit_id[:8]} ready for inspection!"
-    )
+    # This now creates a quick bay for backward compatibility
+    return create_quick_bay(request, db)
 
 @app.api_route("/pit/{pit_id}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
+@app.api_route("/bay/{pit_id}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
 async def inspect_webhook(
     pit_id: str,
     request: Request,
@@ -123,7 +229,10 @@ async def inspect_webhook(
 
     This is where the magic happens! Any HTTP request to this endpoint
     is captured, stored, and broadcast to connected pit crew members.
+
+    Works with both /pit/{id} (legacy) and /bay/{id} (new)
     """
+    import datetime
     start_time = time.time()
 
     # Capture request details
@@ -150,6 +259,12 @@ async def inspect_webhook(
     lap_time_ms = int((time.time() - start_time) * 1000)
     pit_request.lap_time_ms = lap_time_ms
     db.commit()
+
+    # Update bay's last_request_at timestamp
+    bay = db.query(ReceivingBay).filter(ReceivingBay.bay_id == pit_id).first()
+    if bay:
+        bay.last_request_at = datetime.datetime.utcnow()
+        db.commit()
 
     # Broadcast to pit crew (WebSocket clients)
     await pit_crew.broadcast(pit_id, {
