@@ -62,11 +62,11 @@ function App() {
 
   const copyUrl = () => {
     navigator.clipboard.writeText(pitLaneUrl);
-    alert('🏁 Pit lane URL copied!');
+    alert('🏁 Webhook Receiving Bay URL copied!');
   };
 
   const clearRequests = async () => {
-    if (!confirm('🗑️ Clear all requests from this pit lane?')) return;
+    if (!confirm('🗑️ Clear all requests from this receiving bay?')) return;
     await axios.delete(`${API_BASE}/api/pit/${pitId}/requests`);
     setRequests([]);
     setSelectedRequest(null);
@@ -107,9 +107,9 @@ function App() {
                 onClick={createPitLane}
                 className="bg-gradient-to-r from-racing-red to-racing-red-dark text-white px-12 py-6 rounded-xl text-2xl font-bold hover:scale-105 transform transition-all shadow-2xl hover:shadow-racing-red/50 border-4 border-racing-red-dark"
               >
-                🏁 Open Pit Lane
+                🏁 Open Receiving Bay
               </button>
-              <p className="text-gray-600 mt-6 text-lg font-medium">Generate a unique webhook URL for testing</p>
+              <p className="text-gray-600 mt-6 text-lg font-medium">Generate a unique Webhook Receiving Bay for testing</p>
             </div>
           ) : (
             <div>
@@ -134,7 +134,7 @@ function App() {
                 </button>
               </div>
               <p className="text-sm text-gray-700 font-semibold">
-                ⚡ Pit Lane ID: <code className="text-racing-red bg-racing-red/10 px-2 py-1 rounded font-mono">{pitId.substring(0, 8)}</code>
+                ⚡ Receiving Bay ID: <code className="text-racing-red bg-racing-red/10 px-2 py-1 rounded font-mono">{pitId.substring(0, 8)}</code>
               </p>
 
               {/* Diagnostics - Racing Dashboard */}
@@ -168,7 +168,7 @@ function App() {
             {/* Request List */}
             <div className="bg-white rounded-lg shadow-2xl p-6 border-4 border-racing-red">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-racing-red">
-                <span>📋</span> Pit Lane Activity ({requests.length})
+                <span>📋</span> Receiving Bay Activity ({requests.length})
               </h2>
               <div className="space-y-3 max-h-[600px] overflow-y-auto">
                 {requests.length === 0 && (
