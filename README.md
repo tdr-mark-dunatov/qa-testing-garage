@@ -310,6 +310,17 @@ We build a **compliance-first platform**:
 
 ---
 
+## 👥 Hackathon Team
+
+**Project Lead:** Mark Dunatov (@mdunatov)
+
+**Team Members:**
+- Add your name here when you join!
+
+**Roles:** See [TEAM_HANDOFF.md](./TEAM_HANDOFF.md) for role assignments
+
+---
+
 **Built with ❤️ by the QA Team**
 
 🏎️ **Test at race speed!**
