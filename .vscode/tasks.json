@@ -1,0 +1,85 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🐳 Start All (Docker)",
+      "type": "shell",
+      "command": "cd docker && docker-compose up --build",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "🛑 Stop Docker",
+      "type": "shell",
+      "command": "cd docker && docker-compose down",
+      "problemMatcher": []
+    },
+    {
+      "label": "🔧 Backend (Poetry)",
+      "type": "shell",
+      "command": "cd apps/webhook-inspector/api && poetry run uvicorn main:app --reload",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "dedicated",
+        "showReuseMessage": true
+      }
+    },
+    {
+      "label": "🎨 Frontend (npm)",
+      "type": "shell",
+      "command": "cd apps/webhook-inspector/web && npm run dev",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "dedicated",
+        "showReuseMessage": true
+      }
+    },
+    {
+      "label": "🚀 Start Backend + Frontend",
+      "dependsOn": [
+        "🔧 Backend (Poetry)",
+        "🎨 Frontend (npm)"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "🧪 Test Webhook (Basic)",
+      "type": "shell",
+      "command": "curl -X POST http://localhost:8000/bay/test-bay -H 'Content-Type: application/json' -d '{\"message\": \"Hello from VS Code!\"}'",
+      "problemMatcher": []
+    },
+    {
+      "label": "🚨 Test Webhook (With PII)",
+      "type": "shell",
+      "command": "curl -X POST http://localhost:8000/bay/test-bay -H 'Content-Type: application/json' -d '{\"ssn\": \"123-45-6789\", \"creditScore\": 720, \"email\": \"test@example.com\"}'",
+      "problemMatcher": []
+    },
+    {
+      "label": "📦 Install Backend Dependencies",
+      "type": "shell",
+      "command": "cd apps/webhook-inspector/api && poetry install",
+      "problemMatcher": []
+    },
+    {
+      "label": "📦 Install Frontend Dependencies",
+      "type": "shell",
+      "command": "cd apps/webhook-inspector/web && npm install",
+      "problemMatcher": []
+    }
+  ]
+}

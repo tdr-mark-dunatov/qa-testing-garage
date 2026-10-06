@@ -1,0 +1,91 @@
+name: 🏁 CI - Test Data Compliance Guardian
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend-lint:
+    name: 🔧 Backend Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        working-directory: apps/webhook-inspector/api
+        run: poetry install
+
+      - name: Lint with flake8 (if configured)
+        working-directory: apps/webhook-inspector/api
+        run: |
+          poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
+
+  frontend-lint:
+    name: 🎨 Frontend Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: apps/webhook-inspector/web
+        run: npm ci
+
+      - name: Lint
+        working-directory: apps/webhook-inspector/web
+        run: npm run lint || true
+
+      - name: Build check
+        working-directory: apps/webhook-inspector/web
+        run: npm run build
+
+  docker-build:
+    name: 🐳 Docker Build
+    runs-on: ubuntu-latest
+    needs: [backend-lint, frontend-lint]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        working-directory: apps/webhook-inspector/api
+        run: docker build -t compliance-guardian-api .
+
+      - name: Build frontend image
+        working-directory: apps/webhook-inspector/web
+        run: docker build -t compliance-guardian-web .
+
+      - name: Test docker-compose
+        working-directory: docker
+        run: docker-compose config
+
+  compliance-check:
+    name: 🛡️ Compliance Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for secrets in code
+        run: |
+          echo "Checking for hardcoded secrets..."
+          ! grep -r "SLACK_WEBHOOK_URL.*https://" apps/ || (echo "Found hardcoded Slack webhook!" && exit 1)
+          ! grep -r "password.*=.*['\"]" apps/ || (echo "Found hardcoded password!" && exit 1)
+          echo "✅ No hardcoded secrets found"

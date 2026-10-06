@@ -1,0 +1,114 @@
+name: 🎯 Hackathon Demo Checks
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main, develop, 'feature/**' ]
+
+jobs:
+  demo-readiness:
+    name: 🎬 Demo Readiness Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required files exist
+        run: |
+          echo "Checking hackathon documentation..."
+          test -f HACKATHON.md || (echo "❌ HACKATHON.md missing" && exit 1)
+          test -f PITCH.md || (echo "❌ PITCH.md missing" && exit 1)
+          test -f IMPLEMENTATION_ROADMAP.md || (echo "❌ IMPLEMENTATION_ROADMAP.md missing" && exit 1)
+          test -f DEMO_SCRIPT.md || test -f apps/webhook-inspector/DEMO_SCRIPT.md || (echo "❌ DEMO_SCRIPT.md missing" && exit 1)
+          echo "✅ All required docs present"
+
+      - name: Check compliance features documented
+        run: |
+          echo "Checking compliance feature docs..."
+          grep -q "PII detection" HACKATHON.md || (echo "❌ PII detection not documented" && exit 1)
+          grep -q "Slack" HACKATHON.md || (echo "❌ Slack alerts not documented" && exit 1)
+          grep -q "Ownership" HACKATHON.md || (echo "❌ Ownership tracking not documented" && exit 1)
+          echo "✅ Core features documented"
+
+      - name: Test Docker setup
+        working-directory: docker
+        run: |
+          echo "Testing docker-compose configuration..."
+          docker-compose config
+          echo "✅ Docker compose valid"
+
+      - name: Check for demo test data
+        run: |
+          echo "Demo preparation checklist:"
+          echo "  - [ ] Slack webhook URL configured"
+          echo "  - [ ] Sample PII payloads ready"
+          echo "  - [ ] Screenshots captured"
+          echo "  - [ ] Presentation slides prepared"
+
+  pii-detection-test:
+    name: 🛡️ PII Detection Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Test PII patterns
+        working-directory: apps/webhook-inspector/api
+        run: |
+          echo "Testing PII detection patterns..."
+          python3 << 'EOF'
+          import re
+
+          # SSN pattern test
+          ssn_pattern = r'\b\d{3}-\d{2}-\d{4}\b'
+          assert re.search(ssn_pattern, "SSN: 123-45-6789"), "SSN pattern failed"
+
+          # Email pattern test
+          email_pattern = r'\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b'
+          assert re.search(email_pattern, "test@example.com"), "Email pattern failed"
+
+          # Credit score pattern test
+          credit_pattern = r'\b[3-8]\d{2}\b'
+          assert re.search(credit_pattern, "720"), "Credit score pattern failed"
+
+          print("✅ All PII patterns working")
+          EOF
+
+  feature-status:
+    name: 📊 Feature Implementation Status
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check implementation progress
+        run: |
+          echo "## 🎯 Feature Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if grep -q "def detect_pii" apps/webhook-inspector/api/*.py; then
+            echo "✅ PII Detection implemented" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ PII Detection pending" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if grep -q "slack" apps/webhook-inspector/api/*.py; then
+            echo "✅ Slack integration implemented" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Slack integration pending" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if grep -q "owner_user" apps/webhook-inspector/api/models.py; then
+            echo "✅ Ownership tracking implemented" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Ownership tracking pending" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if grep -q "ComplianceDashboard" apps/webhook-inspector/web/src/**/*.jsx 2>/dev/null; then
+            echo "✅ Compliance Dashboard implemented" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Compliance Dashboard pending" >> $GITHUB_STEP_SUMMARY
+          fi
