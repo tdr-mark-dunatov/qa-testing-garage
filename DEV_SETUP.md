@@ -12,10 +12,14 @@
 
 ### Start Everything
 ```bash
-# 1. Clone the repo (if not already)
-cd c:/Test-Development/qa-testing-garage
+# 1. Clone the repo
+git clone https://github.com/tdr-dealertrack/qa-testing-garage.git
+cd qa-testing-garage
 
-# 2. Start all services (PostgreSQL + Backend + Frontend)
+# 2. Checkout develop branch
+git checkout develop
+
+# 3. Start all services (PostgreSQL + Backend + Frontend)
 cd docker
 docker-compose up --build
 
