@@ -1,36 +1,38 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database (optional - comment out to use SQLite)
-  # db:
-  #   image: postgres:15-alpine
-  #   container_name: pitstop-db
-  #   environment:
-  #     - POSTGRES_USER=pitstop
-  #     - POSTGRES_PASSWORD=pitstop123
-  #     - POSTGRES_DB=webhooks
-  #   volumes:
-  #     - postgres-data:/var/lib/postgresql/data
-  #   networks:
-  #     - pitstop-network
-  #   restart: unless-stopped
+  # PostgreSQL Database - Production-ready database for compliance data
+  db:
+    image: postgres:15-alpine
+    container_name: compliance-guardian-db
+    environment:
+      - POSTGRES_USER=compliance
+      - POSTGRES_PASSWORD=guardian_secure_123
+      - POSTGRES_DB=webhooks
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U compliance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
       context: ../apps/webhook-inspector/api
       dockerfile: Dockerfile
-    container_name: pitstop-backend
+    container_name: compliance-guardian-backend
     ports:
       - "8000:8000"
     volumes:
       - ../apps/webhook-inspector/api:/app
       - pitstop-data:/app/data
     environment:
-      - DATABASE_URL=sqlite:///./data/pitstop.db
-      # For PostgreSQL, uncomment and use:
-      # - DATABASE_URL=postgresql://pitstop:pitstop123@db:5432/webhooks
-    # depends_on:
-    #   - db
+      - DATABASE_URL=postgresql://compliance:guardian_secure_123@db:5432/webhooks
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - pitstop-network
     restart: unless-stopped
@@ -39,11 +41,12 @@ services:
     build:
       context: ../apps/webhook-inspector/web
       dockerfile: Dockerfile
-    container_name: pitstop-frontend
+    container_name: compliance-guardian-frontend
     ports:
       - "8080:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     networks:
       - pitstop-network
     restart: unless-stopped
@@ -51,8 +54,8 @@ services:
 volumes:
   pitstop-data:
     driver: local
-  # postgres-data:
-  #   driver: local
+  postgres-data:
+    driver: local
 
 networks:
   pitstop-network:
