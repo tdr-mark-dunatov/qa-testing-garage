@@ -1,269 +1,245 @@
-# 🏁 Webhook Pitstop
+# 🏎️ QA Testing Garage
 
-**Real-time webhook inspection tool with race-speed diagnostics for QA testing**
+**A monorepo of QA testing tools for automotive teams**
 
-Inspect webhooks at lightning speed with a racing-themed UI. Built for automotive QA teams who need to capture, analyze, and debug webhook integrations.
+Collection of internal tools built to solve real QA testing problems - webhook inspection, API mocking, test data generation, and more.
 
-## Project Structure
+---
+
+## 🛠️ Tools in the Garage
+
+### 🏁 [Webhook Inspector](./apps/webhook-inspector/) - **LIVE**
+
+Real-time webhook testing with automatic PII masking.
+
+**Features:**
+- Named & quick receiving bays
+- Real-time WebSocket updates
+- Search & filter webhooks
+- Export as JSON / Copy as cURL
+- Automatic PII masking (SSN, credit cards, email, phone)
+- Racing-themed dashboard
+
+**Built for:** Testing partner webhooks (BMT, HYN, RBC) without exposing sensitive data
+
+**[→ View Webhook Inspector Docs](./apps/webhook-inspector/README.md)**
+
+---
+
+### 🚧 API Mocker - **COMING SOON**
+
+Mock API responses for testing without backend dependencies.
+
+**Planned Features:**
+- Define API endpoints with custom responses
+- Latency simulation
+- Error scenarios
+- Response templating
+
+---
+
+### 🚧 Test Data Factory - **COMING SOON**
+
+Generate realistic test data for automotive deals.
+
+**Planned Features:**
+- Customer profiles (with fake PII)
+- Vehicle data (VIN, make, model)
+- Deal structures
+- Export as JSON/CSV/SQL
+
+---
+
+### 🚧 Contract Validator - **COMING SOON**
+
+Validate API contracts between services.
+
+**Planned Features:**
+- OpenAPI spec validation
+- Request/response schema checking
+- Breaking change detection
+
+---
+
+## 🏗️ Monorepo Structure
 
 ```
-webhook-pitstop/
+qa-testing-garage/
 ├── apps/
-│   ├── api/          FastAPI backend (Poetry)
-│   └── web/          React + Vite frontend (npm)
+│   ├── webhook-inspector/    # Webhook testing tool
+│   │   ├── api/              # FastAPI backend
+│   │   └── web/              # React frontend
+│   │
+│   ├── portal/               # Landing page (coming soon)
+│   ├── api-mocker/           # Future tool
+│   └── test-data-factory/    # Future tool
+│
+├── packages/
+│   ├── shared-ui/            # Shared React components
+│   └── types/                # Shared TypeScript types
+│
 ├── docker/
-│   └── docker-compose.yml
-└── scripts/
-    ├── dev.sh        Development script (Unix)
-    └── dev.bat       Development script (Windows)
+│   └── docker-compose.yml    # All services
+│
+└── docs/
+    ├── TOOLS.md              # Tool catalog
+    ├── SECURITY.md           # Security guidelines
+    └── CONTRIBUTING.md       # How to add tools
 ```
 
-## Features
+---
 
-- 🏁 **Real-time Inspection** - See webhook requests as they arrive
-- ⚡ **Race-Speed Performance** - WebSocket-powered live updates
-- 🔧 **Diagnostic Dashboard** - Lap times, headers, payloads, and more
-- 📊 **Performance Metrics** - Track fastest/slowest/average response times
-- 🎨 **Racing Theme** - Car-themed UI for automotive companies
-- 🐳 **Docker Ready** - One command deployment
-- 📦 **Multi-App Ready** - Clean structure to add CLI, mobile, admin apps
+## 🚀 Quick Start
 
-## Quick Start
+### Run Webhook Inspector
 
-### Option 1: Quick Dev (Recommended for Hackathon)
-
-**Windows:**
-```bash
-scripts\dev.bat
-```
-
-**Mac/Linux:**
-```bash
-./scripts/dev.sh
-```
-
-Access: http://localhost:5173
-
-### Option 2: Manual Development
-
-**Terminal 1 - API:**
-```bash
-cd apps/api
-poetry install
-poetry run uvicorn main:app --reload
-```
-
-**Terminal 2 - Web:**
-```bash
-cd apps/web
-npm install
-npm run dev
-```
-
-### Option 3: Docker
-
+**Docker (Easiest):**
 ```bash
 cd docker
 docker-compose up --build
 ```
 
-Access: http://localhost
+Access at **http://localhost:8080**
 
-## How It Works
-
-1. **Open Pit Lane** - Generate a unique webhook URL
-2. **Send Requests** - Send HTTP requests to your pit lane URL
-3. **Watch Real-time** - See requests appear instantly via WebSocket
-4. **Inspect Details** - Click any request to view headers, body, timing
-
-## Use Cases
-
-### QA Testing
-- Test lender integrations (HMF, TDC, RBC external communications)
-- Debug webhook delivery issues
-- Capture exact payloads for test fixtures
-
-### Development
-- Develop against third-party webhooks locally
-- No VPN/staging environment needed
-- Share webhook URLs with external vendors
-
-### Troubleshooting
-- Reproduce production issues
-- Compare working vs broken payloads
-- Identify timing/latency problems
-
-## Applications
-
-### `apps/api` - FastAPI Backend
-- WebSocket server for real-time updates
-- SQLite/PostgreSQL support
-- REST API with auto-generated docs
-- Poetry for dependency management
-
-### `apps/web` - React Frontend
-- Racing-themed UI with Tailwind CSS
-- Real-time WebSocket connection
-- Responsive design
-- Vite for blazing-fast dev server
-
-### Future Apps (Easy to Add!)
-
-The clean `apps/` structure makes it simple to add:
-
-- **CLI Tool** - Watch requests in terminal, export data
-- **Mobile App** - React Native for iOS/Android
-- **Admin Dashboard** - User management and analytics
-
-## Architecture
-
-```
-┌──────────────┐         ┌──────────────┐
-│   apps/web   │ ◄─────► │   apps/api   │
-│   (React)    │ WebSocket│  (FastAPI)   │
-│   + Vite     │  + HTTP  │  + Poetry    │
-└──────────────┘         └──────────────┘
-```
-
-## Technology Stack
-
-**Backend (apps/api):**
-- FastAPI (async Python)
-- Poetry (dependency management)
-- SQLAlchemy (ORM)
-- WebSockets (real-time)
-- SQLite/PostgreSQL
-
-**Frontend (apps/web):**
-- React + Vite
-- Tailwind CSS
-- Axios + WebSocket API
-
-**Deployment:**
-- Docker + Docker Compose
-- Nginx (reverse proxy)
-- Multi-stage builds for optimized images
-
-## Configuration
-
-### Environment Variables
-
+**Manual Development:**
 ```bash
-# apps/api/.env
-DATABASE_URL=sqlite:///./data/pitstop.db  # SQLite (default)
-# or
-DATABASE_URL=postgresql://user:pass@localhost:5432/webhooks
+# Backend
+cd apps/webhook-inspector/api
+poetry install
+poetry run uvicorn main:app --reload
+
+# Frontend
+cd apps/webhook-inspector/web
+npm install
+npm run dev
 ```
-
-### Switch to PostgreSQL
-
-Edit `docker/docker-compose.yml`:
-```yaml
-db:
-  image: postgres:15-alpine
-  environment:
-    - POSTGRES_USER=pitstop
-    - POSTGRES_PASSWORD=pitstop123
-    - POSTGRES_DB=webhooks
-
-backend:
-  environment:
-    - DATABASE_URL=postgresql://pitstop:pitstop123@db:5432/webhooks
-```
-
-## API Documentation
-
-Once running:
-- **Interactive API Docs**: http://localhost:8000/docs
-- **Alternative Docs**: http://localhost:8000/redoc
-- **Health Check**: http://localhost:8000/health
-
-## Development Workflow
-
-### Adding a New App
-
-1. Create app directory:
-```bash
-mkdir apps/your-new-app
-cd apps/your-new-app
-```
-
-2. Initialize your app (React, CLI, Python, etc.)
-
-3. Add Dockerfile for containerization
-
-4. Update `docker-compose.yml` to include the new service
-
-### Testing
-
-```bash
-# API tests
-cd apps/api
-pytest
-
-# Web tests
-cd apps/web
-npm test
-```
-
-### Building
-
-```bash
-# Build frontend
-cd apps/web
-npm run build
-
-# Build with Docker
-cd docker
-docker-compose build
-```
-
-## Deployment
-
-### Docker (Recommended)
-
-```bash
-cd docker
-docker-compose up -d
-```
-
-### Cloud Providers
-- **AWS ECS/Fargate**
-- **Azure Container Instances**
-- **Google Cloud Run**
-- **DigitalOcean App Platform**
-- **Railway.app** (easiest!)
-
-## Racing Theme
-
-The entire application uses automotive/racing metaphors:
-
-- **Pit Lane** = Webhook URL
-- **Lap Time** = Response time (ms)
-- **Engine Type** = HTTP method
-- **Diagnostic Report** = Request details
-- **Pit Crew** = WebSocket connections
-- **Service Bay** = Inspection interface
-
-## Contributing
-
-This is a hackathon project! Contributions welcome:
-
-1. Fork the repo
-2. Create a feature branch
-3. Make your changes
-4. Submit a PR
-
-## License
-
-MIT License - See LICENSE file
-
-## Built With
-
-❤️ by Mark Dunatov for Hackathon 2024
 
 ---
 
-🏁 **Inspect webhooks at race speed!**
+## 📚 Documentation
 
-**Clean architecture = Easy to scale. Add CLI tools, mobile apps, admin dashboards with the same patterns!**
+- **[Webhook Inspector](./apps/webhook-inspector/README.md)** - Full docs for webhook tool
+- **[Security Roadmap](./SECURITY_ROADMAP.md)** - Production security plan
+- **[Pitch Document](./PITCH.md)** - QA team value proposition
+- **[Tech Stack](./TECH_STACK.md)** - Technologies used
+- **[Deployment Guide](./DEPLOYMENT.md)** - AWS/Railway deployment
+
+---
+
+## 🎯 Why a Monorepo?
+
+**Benefits:**
+- ✅ **Shared Components** - Reuse UI, auth, utilities across tools
+- ✅ **Consistent Branding** - Same look and feel
+- ✅ **Easier Development** - One repo, one workflow
+- ✅ **Cross-Tool Features** - Tools can integrate with each other
+- ✅ **Single Deployment** - Docker Compose orchestrates all services
+
+---
+
+## 🔒 Security
+
+All tools follow these principles:
+- **PII Masking** - Sensitive data masked before storage
+- **Self-Hosted** - No third-party data exposure
+- **Audit Ready** - Logs and access controls
+- **Network Isolation** - Deploy on internal networks
+
+See [SECURITY_ROADMAP.md](./SECURITY_ROADMAP.md) for production security requirements.
+
+---
+
+## 🏆 Built For
+
+**AutoScout24 QA Team** - Solving real testing problems:
+
+### The Problem:
+Our QA tests for partner integrations were using webhook.site, leaving sensitive customer data (SSN, credit scores, loan amounts) exposed on external servers for 30+ days with no cleanup.
+
+### The Solution:
+Self-hosted testing tools with:
+- Full data control
+- Automatic PII protection
+- Immediate cleanup
+- Custom QA workflows
+
+---
+
+## 🛠️ Technology Stack
+
+### Backend
+- **Python 3.11+** with **FastAPI**
+- **Poetry** for dependency management
+- **SQLAlchemy** ORM with SQLite/PostgreSQL
+- **WebSockets** for real-time updates
+
+### Frontend
+- **React 18** with **Vite**
+- **Tailwind CSS** for styling
+- **Axios** for HTTP requests
+
+### Infrastructure
+- **Docker** & **Docker Compose**
+- **Nginx** reverse proxy
+- **AWS** / **Railway** deployment ready
+
+---
+
+## 📊 Project Status
+
+| Tool | Status | Version | Last Updated |
+|------|--------|---------|--------------|
+| Webhook Inspector | ✅ Live | 1.0.0 | 2024-10-06 |
+| Portal | 🚧 Planned | - | - |
+| API Mocker | 🚧 Planned | - | - |
+| Test Data Factory | 🚧 Planned | - | - |
+
+---
+
+## 🤝 Contributing
+
+Want to add a new tool?
+
+1. Create directory in `apps/your-tool/`
+2. Build with any tech stack (FastAPI, React, CLI, etc.)
+3. Add Dockerfile for containerization
+4. Update `docker-compose.yml`
+5. Add docs to `apps/your-tool/README.md`
+
+See [CONTRIBUTING.md](./docs/CONTRIBUTING.md) (coming soon)
+
+---
+
+## 📝 License
+
+MIT License - See [LICENSE](./LICENSE)
+
+---
+
+## 🎬 Hackathon Origin
+
+Built during **Hackathon 2024** in response to the "Test Data Compliance Guardian" idea:
+
+> "Teams use webhook.site, request bins, mock APIs... Sensitive payloads can remain exposed after tests complete."
+
+We discovered this was a REAL problem in our Playwright tests. So we built the solution!
+
+---
+
+## 🏁 The Vision
+
+**QA Testing Garage = One-stop shop for all QA testing tools**
+
+Instead of cobbling together external services (webhook.site, mocky.io, faker.js, etc.), we build our own:
+- ✅ **Secure** - Self-hosted, PII-protected
+- ✅ **Integrated** - Tools work together
+- ✅ **Custom** - Built for our workflows
+- ✅ **Compliant** - Audit trails, access control
+
+**Future:** Add API mockers, test data generators, contract validators, performance monitors, and more!
+
+---
+
+**Built with ❤️ by the QA Team**
+
+🏎️ **Test at race speed!**

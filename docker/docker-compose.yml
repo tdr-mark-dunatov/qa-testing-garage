@@ -17,13 +17,13 @@ services:
 
   backend:
     build:
-      context: ../apps/api
+      context: ../apps/webhook-inspector/api
       dockerfile: Dockerfile
     container_name: pitstop-backend
     ports:
       - "8000:8000"
     volumes:
-      - ../apps/api:/app
+      - ../apps/webhook-inspector/api:/app
       - pitstop-data:/app/data
     environment:
       - DATABASE_URL=sqlite:///./data/pitstop.db
@@ -37,7 +37,7 @@ services:
 
   frontend:
     build:
-      context: ../apps/web
+      context: ../apps/webhook-inspector/web
       dockerfile: Dockerfile
     container_name: pitstop-frontend
     ports:
