@@ -116,6 +116,29 @@ pii_alert_sent = Column(Integer, default=0, comment="1 if Slack alert sent")
 ]
 ```
 
+### `DELETE /api/bay/{bay_id}` ✅ IMPLEMENTED
+Delete a bay completely (bay + all requests)
+```json
+{
+  "status": "deleted",
+  "message": "Bay 'hmf-integration' deleted completely",
+  "bay_id": "hmf-integration",
+  "requests_deleted": 45
+}
+```
+
+### `DELETE /api/bays/cleanup?older_than_days=7` ✅ IMPLEMENTED
+Bulk cleanup old bays for compliance
+```json
+{
+  "status": "cleaned",
+  "message": "Deleted 3 bays older than 7 days",
+  "deleted_count": 3,
+  "total_requests_deleted": 127,
+  "bays": [...]
+}
+```
+
 ---
 
 ## Integration Points

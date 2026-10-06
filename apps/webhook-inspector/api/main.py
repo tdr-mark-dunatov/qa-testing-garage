@@ -374,6 +374,88 @@ def clear_pit_lane(pit_id: str, db: Session = Depends(get_db)):
         "deleted_count": deleted_count
     }
 
+@app.delete("/api/bay/{bay_id}")
+def delete_bay(bay_id: str, db: Session = Depends(get_db)):
+    """
+    🗑️ Delete a receiving bay completely (COMPLIANCE FEATURE)
+
+    Deletes the bay and all associated requests.
+    Critical for data cleanup and compliance.
+    """
+    # Check if bay exists
+    bay = db.query(ReceivingBay).filter(ReceivingBay.bay_id == bay_id).first()
+    if not bay:
+        raise HTTPException(status_code=404, detail=f"Bay '{bay_id}' not found")
+
+    # Delete all requests for this bay
+    requests_deleted = db.query(PitLaneRequest).filter(PitLaneRequest.pit_id == bay_id).delete()
+
+    # Delete the bay itself
+    db.delete(bay)
+    db.commit()
+
+    return {
+        "status": "deleted",
+        "message": f"🗑️ Bay '{bay.bay_name}' deleted completely",
+        "bay_id": bay_id,
+        "requests_deleted": requests_deleted
+    }
+
+@app.delete("/api/bays/cleanup")
+def cleanup_old_bays(older_than_days: int = 7, db: Session = Depends(get_db)):
+    """
+    🧹 Bulk cleanup: Delete bays older than X days (COMPLIANCE FEATURE)
+
+    Default: Deletes bays older than 7 days
+    Query param: ?older_than_days=30
+    """
+    import datetime
+    from sqlalchemy import and_
+
+    cutoff_date = datetime.datetime.utcnow() - datetime.timedelta(days=older_than_days)
+
+    # Find old bays
+    old_bays = db.query(ReceivingBay).filter(
+        ReceivingBay.created_at < cutoff_date
+    ).all()
+
+    if not old_bays:
+        return {
+            "status": "no_action",
+            "message": f"No bays older than {older_than_days} days found",
+            "deleted_count": 0
+        }
+
+    deleted_bays = []
+    total_requests_deleted = 0
+
+    for bay in old_bays:
+        # Delete requests
+        requests_deleted = db.query(PitLaneRequest).filter(
+            PitLaneRequest.pit_id == bay.bay_id
+        ).delete()
+        total_requests_deleted += requests_deleted
+
+        deleted_bays.append({
+            "bay_id": bay.bay_id,
+            "bay_name": bay.bay_name,
+            "age_days": (datetime.datetime.utcnow() - bay.created_at).days,
+            "requests_deleted": requests_deleted
+        })
+
+        # Delete bay
+        db.delete(bay)
+
+    db.commit()
+
+    return {
+        "status": "cleaned",
+        "message": f"🧹 Deleted {len(deleted_bays)} bays older than {older_than_days} days",
+        "deleted_count": len(deleted_bays),
+        "total_requests_deleted": total_requests_deleted,
+        "bays": deleted_bays
+    }
+
 @app.websocket("/ws/{pit_id}")
 async def websocket_endpoint(websocket: WebSocket, pit_id: str):
     """
