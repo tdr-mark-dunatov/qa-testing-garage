@@ -1,8 +1,18 @@
 # 🏎️ Test Data Compliance Guardian
 
-**Compliance-aware testing platform with automatic PII detection**
+**Hackathon 2024 Project**
 
-Self-hosted testing tools that protect sensitive data with automatic PII scanning, ownership tracking, and real-time compliance alerts. Built for teams that can't afford data leaks in their testing workflows.
+## The Problem We Discovered
+
+Our QA tests were using webhook.site, leaving **sensitive customer data** (SSN, credit scores, loan amounts) exposed on external servers for **30+ days** with no cleanup.
+
+**This is a real compliance risk.**
+
+## The Solution
+
+Self-hosted webhook testing platform with **automatic PII detection**, Slack alerts when sensitive data is found, and full data ownership.
+
+Replace webhook.site. Stop data leaks. Stay compliant.
 
 ---
 
@@ -25,93 +35,53 @@ http://localhost:8080
 
 ---
 
-## 🛠️ Tools in the Garage
+## 🎯 What We're Building (Hackathon 2024)
 
-### 🏁 [Webhook Inspector](./apps/webhook-inspector/) - **LIVE**
+### 🏁 Test Data Compliance Guardian - **IN PROGRESS**
 
-Real-time webhook testing with **automatic PII detection and compliance alerts**.
+**The Problem:** Teams use webhook.site and expose sensitive PII for 30+ days with no cleanup.
 
-**Core Compliance Features:**
+**The Solution:** Self-hosted webhook testing with automatic PII detection and compliance tracking.
+
+**Core Features:**
 - 🚨 **Automatic PII Detection** - Scans for SSN, SIN, credit scores, emails, phone numbers
-- 📢 **Slack Alerts** - Real-time notifications when sensitive data detected
-- 👥 **Ownership Tracking** - Know who/what/when for every endpoint
+- 📢 **Slack Alerts** - Real-time notifications when sensitive data detected  
+- 👥 **Ownership Tracking** - Track who/what/when for every endpoint
 - 📊 **Compliance Dashboard** - See all data exposure at a glance
+- 🗑️ **Full Data Cleanup** - Delete bays + all webhooks on demand
 - ⏰ **Auto-Expiration** - Configurable data retention policies
 
-**Testing Features:**
-- Named & quick receiving bays
-- Real-time WebSocket updates
-- Search & filter webhooks
-- Export as JSON / Copy as cURL
-- PII masking for display
-- Racing-themed dashboard
+**Already Working:**
+- ✅ Named & quick webhook receiving bays
+- ✅ Real-time WebSocket updates
+- ✅ PostgreSQL database
+- ✅ PII masking for display
+- ✅ Delete bay functionality
+- ✅ Racing-themed dashboard
 
-**Built for:** Testing partner webhooks (BMT, HYN, RBC) while **maintaining compliance**
+**To Build (11-15 hours):**
+- ⚠️ PII Detection module + Slack integration
+- ⚠️ Ownership tracking (user/team/repo/pipeline)
+- ⚠️ Compliance dashboard UI
 
-**[→ View Webhook Inspector Docs](./apps/webhook-inspector/README.md)**
-
----
-
-### 🚧 API Mocker - **COMING SOON**
-
-Mock API responses for testing without backend dependencies.
-
-**Planned Features:**
-- Define API endpoints with custom responses
-- Latency simulation
-- Error scenarios
-- Response templating
+**[→ View Implementation Roadmap](./IMPLEMENTATION_ROADMAP.md)**
 
 ---
 
-### 🚧 Test Data Factory - **COMING SOON**
-
-Generate realistic test data for automotive deals.
-
-**Planned Features:**
-- Customer profiles (with fake PII)
-- Vehicle data (VIN, make, model)
-- Deal structures
-- Export as JSON/CSV/SQL
-
----
-
-### 🚧 Contract Validator - **COMING SOON**
-
-Validate API contracts between services.
-
-**Planned Features:**
-- OpenAPI spec validation
-- Request/response schema checking
-- Breaking change detection
-
----
-
-## 🏗️ Monorepo Structure
+## 🏗️ Architecture
 
 ```
-qa-testing-garage/
-├── apps/
-│   ├── webhook-inspector/    # Webhook testing tool
-│   │   ├── api/              # FastAPI backend
-│   │   └── web/              # React frontend
-│   │
-│   ├── portal/               # Landing page (coming soon)
-│   ├── api-mocker/           # Future tool
-│   └── test-data-factory/    # Future tool
-│
-├── packages/
-│   ├── shared-ui/            # Shared React components
-│   └── types/                # Shared TypeScript types
-│
-├── docker/
-│   └── docker-compose.yml    # All services
-│
-└── docs/
-    ├── TOOLS.md              # Tool catalog
-    ├── SECURITY.md           # Security guidelines
-    └── CONTRIBUTING.md       # How to add tools
+PostgreSQL 15 → FastAPI Backend → React Frontend
+    ↓              ↓                   ↓
+Webhook data   PII Detection      Real-time UI
+Audit trail    Slack Alerts       WebSockets
 ```
+
+**Tech Stack:**
+- Backend: Python 3.11 + FastAPI + SQLAlchemy
+- Frontend: React 18 + Vite + Tailwind
+- Database: PostgreSQL 15
+- Infrastructure: Docker Compose
 
 ---
 
@@ -152,14 +122,18 @@ npm run dev
 
 ---
 
-## 🎯 Why a Monorepo?
+## 💰 Business Value
 
-**Benefits:**
-- ✅ **Shared Components** - Reuse UI, auth, utilities across tools
-- ✅ **Consistent Branding** - Same look and feel
-- ✅ **Easier Development** - One repo, one workflow
-- ✅ **Cross-Tool Features** - Tools can integrate with each other
-- ✅ **Single Deployment** - Docker Compose orchestrates all services
+| webhook.site Pro | Compliance Guardian |
+|------------------|---------------------|
+| $9/user/month | Self-hosted (~$15/month AWS) |
+| **$1,080/year for 10 users** | **$180/year** |
+| No PII detection | ✅ Automatic PII scanning |
+| No alerts | ✅ Slack notifications |
+| No ownership tracking | ✅ Full audit trail |
+| Data sits 30 days | ✅ Delete on demand |
+
+**Savings: $900/year + Compliance guaranteed**
 
 ---
 
@@ -230,17 +204,22 @@ Our QA tests for partner integrations were using webhook.site, leaving sensitive
 
 ---
 
-## 📊 Project Status
+## 📊 Hackathon Status
 
-| Tool | Status | Version | Last Updated |
-|------|--------|---------|--------------|
-| Webhook Inspector (with PII detection) | ✅ Live | 1.0.0 | 2024-10-06 |
-| Slack Alerts | 🚧 In Progress | 0.1.0 | 2024-10-06 |
-| Compliance Dashboard | 🚧 In Progress | 0.1.0 | 2024-10-06 |
-| Ownership Tracking | 🚧 Planned | - | - |
-| Portal | 🚧 Planned | - | - |
-| API Mocker (with compliance) | 🚧 Planned | - | - |
-| Test Data Factory (PII-safe) | 🚧 Planned | - | - |
+| Feature | Status | Effort | Owner |
+|---------|--------|--------|-------|
+| Webhook Receiving Bays | ✅ Complete | Done | - |
+| Real-time WebSocket | ✅ Complete | Done | - |
+| PostgreSQL Database | ✅ Complete | Done | - |
+| Bay Delete (API + UI) | ✅ Complete | Done | - |
+| **PII Detection Module** | ⚠️ **To Do** | 2-3h | Needed |
+| **Slack Alerts** | ⚠️ **To Do** | 1h | Needed |
+| **Ownership Tracking** | ⚠️ **To Do** | 3-4h | Needed |
+| **Compliance Dashboard** | ⚠️ **To Do** | 4-5h | Needed |
+| Test Suite | ✅ Complete | Done | - |
+| Documentation | ✅ Complete | Done | - |
+
+**Total Remaining:** ~11-15 hours of focused work
 
 ---
 
@@ -286,27 +265,34 @@ A production-ready compliance platform that:
 
 ---
 
-## 🏁 The Vision
+## 🏁 Hackathon Goal
 
-**Test Data Compliance Guardian = Compliance layer for ALL testing tools**
+**Build a production-ready compliance platform for webhook testing.**
 
-Instead of cobbling together external services without compliance:
-- ❌ webhook.site (no PII detection)
-- ❌ RequestBin (no ownership tracking)
-- ❌ mocky.io (no alerts)
-- ❌ faker.js (generates real-looking PII)
+### What Makes This Different:
+- ✅ **Solves a REAL problem** we discovered in our own tests
+- ✅ **Not just for QA** - Platform tool for all teams
+- ✅ **Production architecture** - PostgreSQL, Docker, CI/CD
+- ✅ **Automatic compliance** - No manual PII audits needed
+- ✅ **Cost savings** - $900/year vs. webhook.site Pro
 
-We build a **compliance-first platform**:
-- ✅ **Automatic PII Detection** - Scans everything
-- ✅ **Real-time Alerts** - Slack notifications
-- ✅ **Ownership Tracking** - Full accountability
-- ✅ **Compliance Dashboard** - Visibility for all
-- ✅ **Self-Hosted** - Complete control
-- ✅ **Audit Ready** - Full compliance logs
-
-**Future:** Expand to API mockers, test data generators, contract validators - all with built-in compliance.
+### After Hackathon:
+1. Deploy to AWS/Railway
+2. Migrate team tests from webhook.site
+3. **Future:** Expand to other testing tools (API mocks, test data generators)
 
 🏁 **Test at race speed, compliance guaranteed!**
+
+---
+
+## 👥 Hackathon Team
+
+**Project Lead:** Mark Dunatov (@mdunatov)
+
+**Team Members:**
+- Add your name here when you join!
+
+**Roles:** See [TEAM_HANDOFF.md](./TEAM_HANDOFF.md) for role assignments
 
 ---
 
