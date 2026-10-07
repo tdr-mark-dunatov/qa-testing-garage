@@ -21,6 +21,10 @@ from schemas import (
     ReceivingBaySchema,
     ReceivingBayWithStats
 )
+from pii_detector import PIIDetector
+
+# Initialize PII detector
+pii_detector = PIIDetector()
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -272,6 +276,21 @@ async def inspect_webhook(
     body = await request.body()
     body_text = body.decode('utf-8', errors='replace') if body else None
 
+    # 🚨 PII DETECTION - Scan for sensitive data
+    pii_result = None
+    if body_text:
+        try:
+            # Try to parse as JSON first
+            import json
+            try:
+                body_json = json.loads(body_text)
+                pii_result = pii_detector.detect(body_json)
+            except json.JSONDecodeError:
+                # Scan as plain text
+                pii_result = pii_detector.detect(body_text)
+        except Exception as e:
+            print(f"⚠️ PII detection error: {e}")
+
     # Apply data masking for security compliance
     masked_body = mask_sensitive_data(body_text) if body_text else None
 
@@ -302,7 +321,7 @@ async def inspect_webhook(
         bay.last_request_at = datetime.datetime.utcnow()
         db.commit()
 
-    # Broadcast to pit crew (WebSocket clients)
+    # Broadcast to pit crew (WebSocket clients) with PII detection results
     await pit_crew.broadcast(pit_id, {
         "id": pit_request.id,
         "method": pit_request.method,
@@ -311,6 +330,7 @@ async def inspect_webhook(
         "query_params": pit_request.query_params,
         "ip_address": pit_request.ip_address,
         "lap_time_ms": lap_time_ms,
+        "pii_detected": pii_result.to_dict() if pii_result else None,
         "status_code": 200,
         "created_at": pit_request.created_at.isoformat(),
         "message": f"⚡ {pit_request.method} request captured in {lap_time_ms}ms"
