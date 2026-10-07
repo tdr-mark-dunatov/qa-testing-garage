@@ -1,0 +1,31 @@
+# Developer Portal Catalog Information
+# https://docs.services.as24.tech/products/developer-portal/catalog-info/
+
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: qa-testing-garage
+  title: Test Data Compliance Guardian
+  description: Self-hosted webhook testing platform with automatic PII detection and compliance tracking
+  annotations:
+    github.com/project-slug: tdr-dealertrack/qa-testing-garage
+  tags:
+    - hackathon
+    - qa-tools
+    - compliance
+    - webhook-testing
+    - python
+    - react
+  links:
+    - url: https://github.com/tdr-dealertrack/qa-testing-garage
+      title: GitHub Repository
+      icon: github
+  vertical: dealertrack
+  availability: false
+  confidentiality: company-internal
+  integrity: false
+spec:
+  type: service
+  lifecycle: experimental
+  owner: dealertrack-catchall
+  system: testing-tools
