@@ -294,7 +294,7 @@ async def inspect_webhook(
     # Apply data masking for security compliance
     masked_body = mask_sensitive_data(body_text) if body_text else None
 
-    # Create diagnostic record (with masked sensitive data)
+    # Create diagnostic record (with masked sensitive data + PII detection results)
     pit_request = PitLaneRequest(
         pit_id=pit_id,
         method=request.method,
@@ -303,7 +303,12 @@ async def inspect_webhook(
         query_params=dict(request.query_params),
         ip_address=request.client.host if request.client else "unknown",
         lap_time_ms=0,  # Will be updated below
-        status_code=200
+        status_code=200,
+        # PII Detection results
+        has_pii=pii_result.has_pii if pii_result else False,
+        pii_types=pii_result.pii_types if pii_result else None,
+        risk_level=pii_result.risk_level if pii_result else "low",
+        pii_matches=[match.__dict__ if hasattr(match, '__dict__') else match for match in pii_result.matches] if pii_result else None
     )
 
     db.add(pit_request)
@@ -420,6 +425,172 @@ def delete_bay(bay_id: str, db: Session = Depends(get_db)):
         "bay_id": bay_id,
         "requests_deleted": requests_deleted
     }
+
+# ═══════════════════════════════════════════════════════════════════
+# Compliance API - PII Detection & Alerts
+# ═══════════════════════════════════════════════════════════════════
+
+@app.get("/api/compliance/alerts")
+def get_pii_alerts(
+    limit: int = 50,
+    risk_level: str = None,
+    db: Session = Depends(get_db)
+):
+    """
+    🚨 Get recent webhooks with PII detected
+
+    Returns webhooks that contain sensitive data, ordered by most recent.
+
+    Query params:
+    - limit: Number of results (default: 50, max: 200)
+    - risk_level: Filter by risk level ('critical', 'high', 'medium', 'low')
+    """
+    limit = min(limit, 200)  # Cap at 200
+
+    query = db.query(PitLaneRequest).filter(PitLaneRequest.has_pii == True)
+
+    if risk_level:
+        query = query.filter(PitLaneRequest.risk_level == risk_level)
+
+    alerts = query.order_by(PitLaneRequest.created_at.desc()).limit(limit).all()
+
+    return {
+        "total": len(alerts),
+        "risk_level_filter": risk_level,
+        "alerts": [
+            {
+                "id": alert.id,
+                "bay_id": alert.pit_id,
+                "method": alert.method,
+                "timestamp": alert.created_at,
+                "risk_level": alert.risk_level,
+                "pii_types": alert.pii_types,
+                "pii_count": len(alert.pii_matches) if alert.pii_matches else 0,
+                "ip_address": alert.ip_address
+            }
+            for alert in alerts
+        ]
+    }
+
+
+@app.get("/api/compliance/summary")
+def get_compliance_summary(db: Session = Depends(get_db)):
+    """
+    📊 Get compliance summary statistics
+
+    Returns:
+    - Total active bays
+    - Bays with PII detected
+    - Total PII alerts (last 24 hours)
+    - Critical alerts count
+    - Recent alerts
+    """
+    import datetime
+    from sqlalchemy import func
+
+    # Total active bays
+    total_bays = db.query(ReceivingBay).count()
+
+    # Bays that have received PII
+    bays_with_pii = db.query(PitLaneRequest.pit_id).filter(
+        PitLaneRequest.has_pii == True
+    ).distinct().count()
+
+    # Total PII alerts (all time)
+    total_pii_alerts = db.query(PitLaneRequest).filter(
+        PitLaneRequest.has_pii == True
+    ).count()
+
+    # Recent alerts (last 24 hours)
+    yesterday = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
+    recent_alerts = db.query(PitLaneRequest).filter(
+        PitLaneRequest.has_pii == True,
+        PitLaneRequest.created_at >= yesterday
+    ).count()
+
+    # Critical alerts (all time)
+    critical_alerts = db.query(PitLaneRequest).filter(
+        PitLaneRequest.risk_level == "critical"
+    ).count()
+
+    # Risk level breakdown
+    risk_breakdown = {}
+    for level in ["critical", "high", "medium", "low"]:
+        count = db.query(PitLaneRequest).filter(
+            PitLaneRequest.risk_level == level
+        ).count()
+        risk_breakdown[level] = count
+
+    # Most common PII types
+    pii_type_counts = {}
+    all_pii = db.query(PitLaneRequest.pii_types).filter(
+        PitLaneRequest.pii_types != None
+    ).all()
+    for row in all_pii:
+        if row.pii_types:
+            for pii_type in row.pii_types:
+                pii_type_counts[pii_type] = pii_type_counts.get(pii_type, 0) + 1
+
+    return {
+        "summary": {
+            "total_active_bays": total_bays,
+            "bays_with_pii": bays_with_pii,
+            "total_pii_alerts": total_pii_alerts,
+            "recent_alerts_24h": recent_alerts,
+            "critical_alerts": critical_alerts
+        },
+        "risk_breakdown": risk_breakdown,
+        "common_pii_types": pii_type_counts,
+        "timestamp": datetime.datetime.utcnow()
+    }
+
+
+@app.get("/api/compliance/bays-with-pii")
+def get_bays_with_pii(db: Session = Depends(get_db)):
+    """
+    📋 List all bays that have received PII
+
+    Returns bays with:
+    - Bay details
+    - Last PII detection timestamp
+    - Total PII alerts for that bay
+    - Highest risk level seen
+    """
+    from sqlalchemy import func
+
+    # Get bays that have PII
+    bays_query = db.query(
+        ReceivingBay.bay_id,
+        ReceivingBay.bay_name,
+        ReceivingBay.description,
+        ReceivingBay.created_at,
+        func.count(PitLaneRequest.id).label("pii_count"),
+        func.max(PitLaneRequest.created_at).label("last_pii_at"),
+        func.max(PitLaneRequest.risk_level).label("highest_risk")
+    ).join(
+        PitLaneRequest, ReceivingBay.bay_id == PitLaneRequest.pit_id
+    ).filter(
+        PitLaneRequest.has_pii == True
+    ).group_by(
+        ReceivingBay.bay_id
+    ).all()
+
+    return {
+        "total": len(bays_query),
+        "bays": [
+            {
+                "bay_id": bay.bay_id,
+                "bay_name": bay.bay_name,
+                "description": bay.description,
+                "created_at": bay.created_at,
+                "pii_alerts_count": bay.pii_count,
+                "last_pii_detected": bay.last_pii_at,
+                "highest_risk_level": bay.highest_risk
+            }
+            for bay in bays_query
+        ]
+    }
+
 
 @app.delete("/api/bays/cleanup")
 def cleanup_old_bays(older_than_days: int = 7, db: Session = Depends(get_db)):
