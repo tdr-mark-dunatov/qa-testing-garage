@@ -12,7 +12,7 @@ on:
 
 jobs:
   sonarqube:
-    name: SonarQube Scan
+    name: SonarQube Code Analysis
     runs-on: ubuntu-latest
 
     steps:
